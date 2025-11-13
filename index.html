@@ -831,7 +831,7 @@
                         </div>
                     </div>
                     <div class="md:col-span-2 flex justify-end">
-                        <button type="submit" class="bg-indigo-600 text-white font-semibold py-2 px-6 rounded-lg shadow-sm hover:bg-indigo-700 transition">Save Proposal</button>
+                        <button type="submit" class="bg-indigo-600 text-white font-semibold py-2 px-6 rounded-lg shadow-sm hover:bg-indigo-700 transition">Create</button>
                     </div>
                 </form>
             </div>
@@ -846,7 +846,7 @@
                 <div id="stage-entry-error-message" class="hidden text-sm text-red-600 bg-red-100 p-3 rounded-lg mb-4"></div>
                 <form id="stage-entry-form" class="space-y-4"></form>
                 <div class="mt-6 border-t border-slate-200 pt-4 flex justify-end">
-                    <button id="save-stage-entry-btn" class="bg-indigo-600 text-white font-semibold py-2 px-6 rounded-lg shadow-sm hover:bg-indigo-700 transition">Save</button>
+                    <button id="save-stage-entry-btn" class="bg-indigo-600 text-white font-semibold py-2 px-6 rounded-lg shadow-sm hover:bg-indigo-700 transition">Add</button>
                 </div>
             </div>
         </div>
@@ -910,7 +910,7 @@
                 <!-- MODIFICATION END -->
                 <form id="wip-stage-entry-form" class="grid grid-cols-1 md:grid-cols-2 gap-4"></form>
                 <div class="mt-6 border-t border-slate-200 pt-4 flex justify-end">
-                    <button id="save-wip-stage-entry-btn" class="bg-indigo-600 text-white font-semibold py-2 px-6 rounded-lg shadow-sm hover:bg-indigo-700 transition">Save</button>
+                    <button id="save-wip-stage-entry-btn" class="bg-indigo-600 text-white font-semibold py-2 px-6 rounded-lg shadow-sm hover:bg-indigo-700 transition">Add</button>
                 </div>
             </div>
         </div>
@@ -996,7 +996,7 @@
                         <input type="hidden" id="newOwnerName">
                     </div>
                     <div class="mt-6 border-t border-slate-200 pt-4 flex justify-end">
-                        <button type="submit" class="bg-indigo-600 text-white font-semibold py-2 px-6 rounded-lg shadow-sm hover:bg-indigo-700 transition">Save Changes</button>
+                        <button type="submit" class="bg-indigo-600 text-white font-semibold py-2 px-6 rounded-lg shadow-sm hover:bg-indigo-700 transition">Transfer</button>
                     </div>
                 </form>
             </div>
@@ -1226,6 +1226,7 @@
         { // Status: LAUNCHED (all stages complete)
             id: 'WIP-001',
             proposalId: 'P2025-001',
+            commercialId: 3, // <-- ***** ADD THIS *****
             productId: 'PARA-500-T', productName: 'Standard 500mg Paracetamol tablets for fever and pain relief.-500mg', vendorName: 'Global Pharma', vendorId: 1, owner: 'Alice', createdBy: 'Alice',
             createdDate: '02-06-2025', isCancelled: false,
             stages: {
@@ -1244,11 +1245,12 @@
         { // Status: WIP
             id: 'WIP-002',
             proposalId: 'P2025-002',
+            commercialId: 6, // <-- ***** ADD THIS *****
             productId: '', productName: '1 liter tetra pack of fresh apple juice, no added sugar.-1L Tetra Pack', vendorName: 'Fresh Juices Inc.', vendorId: 4, owner: 'Bob', createdBy: 'Bob',
             createdDate: '06-07-2025', isCancelled: false,
             stages: {
                 agreement: { data: [{id: 8, upload: 'juice_agreement.pdf', status: 'Completed'}] },
-                artWork: { data: [{id: 9, upload: 'apple_juice_label.ai', status: 'WIP'}] }, // WIP
+                artWork: { data: [{id: 9, upload: 'apple_juice_label.ai', status: 'Completed'}] }, // WIP
                 pricing: { data: [] }, // Pending
                 branding: { data: [] }, // Pending
                 vendorKYC: { data: [{id: 10, vendorName: 'Fresh Juices Inc.', gstNumber: 'GSTIN789', status: 'Completed'}] },
@@ -1262,6 +1264,7 @@
         { // Status: Project Approved
             id: 'WIP-005',
             proposalId: 'P2025-001',
+            commercialId: 16, // <-- ***** ADD THIS *****
             productId: '', productName: 'Standard 500mg Paracetamol tablets for fever and pain relief.-650mg', vendorName: 'Global Pharma', vendorId: 1, owner: 'Alice', createdBy: 'Alice',
             createdDate: '08-07-2025', isCancelled: false,
             stages: {
@@ -1280,6 +1283,7 @@
     const showView = (viewName) => { Object.values(views).forEach(view => view.classList.remove('view-active')); if (views[viewName]) views[viewName].classList.add('view-active'); };
     const getStatusClass = (status) => { const statusMap = { 'Pending': 'status-pending', 'No': 'status-pending', 'WIP': 'status-wip', 'Partially Completed': 'status-wip', 'Approval Pending': 'status-approval-pending', 'Approved': 'status-approved', 'Yes': 'status-completed', 'Rejected': 'status-rejected', 'Withdrawn': 'status-withdrawn', 'Project Approved': 'status-approved', 'Launched': 'status-launched', 'Cancelled': 'status-cancelled', 'Completed': 'status-completed', }; return statusMap[status] || 'bg-slate-200 text-slate-800'; };
  
+    <!-- --- MODIFICATION START: Updated status display logic --- -->
     const mapStageStatusForDisplay = (status) => { 
         if (status === 'WIP') return 'Partially Completed';
         return status; 
@@ -1288,6 +1292,10 @@
 
     const calculateOverallStageStatus = (stageData) => { if (!stageData || stageData.length === 0) return 'Pending'; const allCompleted = stageData.every(entry => entry.status === 'Completed'); if (allCompleted) return 'Completed'; const anyProgress = stageData.some(entry => entry.status === 'WIP' || entry.status === 'Completed'); if (anyProgress) return 'WIP'; return 'Pending'; };
     const calculateProposalStatus = (p) => { if (p.isWithdrawn) return 'Withdrawn'; if (p.isRejected) return 'Rejected'; if (p.isApproved) return 'Approved'; const requiredStages = [p.vendorIdentification, p.sample, p.commercials, p.agreementProposal]; p.vendorIdentification.status = calculateOverallStageStatus(p.vendorIdentification.data); p.sample.status = calculateOverallStageStatus(p.sample.data); p.commercials.status = calculateOverallStageStatus(p.commercials.data); p.agreementProposal.status = calculateOverallStageStatus(p.agreementProposal.data); 
+        
+        // --- BUG FIX START ---
+        // (Previous override logic removed)
+        // --- BUG FIX END ---
         
         const hasApprovableVariant = p.commercials.data.some(comm => {
             if (comm.status !== 'Completed') return false;
@@ -1306,17 +1314,37 @@
     };
     
     const calculateWipStageOverallStatus = (stage, key) => {
-        if (!stage || !stage.data || stage.data.length === 0) return 'Pending';
+        if (!stage || !stage.data || stage.data.length === 0) {
+             // --- MODIFICATION START ---
+            // If pricing stage is empty, it's considered "Completed" by default
+            // as it pulls data from the approved proposal commercials.
+            if (key === 'pricing') {
+                return 'Completed';
+            }
+            // --- MODIFICATION END ---
+            return 'Pending';
+        }
         
         // Pricing has its own internal status
         if (key === 'pricing') {
+             // --- MODIFICATION START ---
+            // If data exists, check its status.
+            // If no data, it's 'Completed' (handled above).
+            if (!stage || !stage.data || stage.data.length === 0) {
+                return 'Completed';
+            }
+            // --- MODIFICATION END ---
+            
             if (stage.data.length > 0) {
                 const entryStatus = stage.data[0].status;
                 // No longer checking for 'Approval Pending' here, as the flag handles it.
                 if (entryStatus === 'Completed') return 'Completed';
                 if (entryStatus === 'WIP') return 'WIP';
             }
-            return 'Pending';
+             // --- MODIFICATION START ---
+            // Fallback for pricing is 'Completed'
+            return 'Completed';
+            // --- MODIFICATION END ---
         }
 
         // For all other stages (Agreement, ArtWork, Branding, KYC, and the Yes/No ones)
@@ -1660,15 +1688,15 @@
 
             
             // Allow manager and employee (if owner) to transfer ownership of an *approved* proposal
-            if (p.isApproved && (isManagerView || p.owner === currentUser.name)) { // <-- MODIFICATION: Added owner check
-                actionsContainer.innerHTML += `<button id="btn-transfer-owner" class="bg-slate-500 text-white font-semibold py-2 px-4 rounded-lg shadow-sm hover:bg-slate-600 transition hover:shadow-md">Transfer Ownership</button>`;
-            }
+            
             
 
-            if (document.getElementById('btn-approve-proposal')) document.getElementById('btn-approve-proposal').addEventListener('click', handleInitiateApproval); 
-            if (document.getElementById('btn-reject-proposal')) document.getElementById('btn-reject-proposal').addEventListener('click', handleRejectProposal); 
-            if (document.getElementById('btn-withdraw-proposal')) document.getElementById('btn-withdraw-proposal').addEventListener('click', handleWithdrawProposal); 
-            if (document.getElementById('btn-transfer-owner')) document.getElementById('btn-transfer-owner').addEventListener('click', handleTransferOwner);
+            // <!-- --- MODIFICATION START: Listener block moved from here --- -->
+            // if (document.getElementById('btn-approve-proposal')) document.getElementById('btn-approve-proposal').addEventListener('click', handleInitiateApproval); 
+            // if (document.getElementById('btn-reject-proposal')) document.getElementById('btn-reject-proposal').addEventListener('click', handleRejectProposal); 
+            // if (document.getElementById('btn-withdraw-proposal')) document.getElementById('btn-withdraw-proposal').addEventListener('click', handleWithdrawProposal); 
+            
+            // 
         }
 
         const allCommercials = p.commercials.data;
@@ -1700,12 +1728,31 @@
         });
         // --- MODIFICATION END ---
         
-        if (isFromApprovedTab && isManagerView && pendingCommercials.length > 0) {
+        
+        // Allow manager and employee (if owner) to transfer ownership of an *approved* proposal
+        if (p.isApproved && (isManagerView || p.owner === currentUser.name)) {
+            actionsContainer.innerHTML += `<button id="btn-transfer-owner" class="bg-slate-500 text-white font-semibold py-2 px-4 rounded-lg shadow-sm hover:bg-slate-600 transition hover:shadow-md">Transfer Ownership</button>`;
+        }
+        
+        if (p.isApproved && isManagerView && pendingCommercials.length > 0) {
             actionsContainer.innerHTML += `
                 <button id="btn-open-approve-pending-modal" class="bg-green-600 text-white font-semibold py-2 px-4 rounded-lg shadow-sm hover:bg-green-700 transition hover:shadow-md">Approve Pending Variants</button>
             `;
-            if (document.getElementById('btn-open-approve-pending-modal')) document.getElementById('btn-open-approve-pending-modal').addEventListener('click', openPendingVariantsApprovalModal);
+            // <!-- --- MODIFICATION START: Listener moved from here --- -->
+            // if (document.getElementById('btn-open-approve-pending-modal')) document.getElementById('btn-open-approve-pending-modal').addEventListener('click', openPendingVariantsApprovalModal);
+            // 
         }
+
+        // --- MODIFICATION START: ATTACH ALL LISTENERS HERE ---
+        if(!isViewOnly) {
+            if (document.getElementById('btn-approve-proposal')) document.getElementById('btn-approve-proposal').addEventListener('click', handleInitiateApproval); 
+            if (document.getElementById('btn-reject-proposal')) document.getElementById('btn-reject-proposal').addEventListener('click', handleRejectProposal); 
+            if (document.getElementById('btn-withdraw-proposal')) document.getElementById('btn-withdraw-proposal').addEventListener('click', handleWithdrawProposal); 
+        }
+        if (document.getElementById('btn-open-approve-pending-modal')) document.getElementById('btn-open-approve-pending-modal').addEventListener('click', openPendingVariantsApprovalModal);
+        // This listener is now outside the isViewOnly block, so it works for both cases
+        if (document.getElementById('btn-transfer-owner')) document.getElementById('btn-transfer-owner').addEventListener('click', handleTransferOwner);
+        
 
         document.getElementById('vendor-count').innerText = p.vendorIdentification.data.length; document.getElementById('sample-count').innerText = p.sample.data.length; document.getElementById('commercials-count').innerText = p.commercials.data.length; document.getElementById('agreement-proposal-count').innerText = p.agreementProposal.data.length;
 
@@ -2667,11 +2714,11 @@
         poReleased: {
             title: 'PO Released Details',
             fields: [
-                { id: 'poId', label: 'PO ID', type: 'text' },
-                { id: 'productId', label: 'Product ID', type: 'text' },
-                { id: 'deliveryDate', label: 'PO Date', type: 'date' }, // <-- MODIFICATION: Label changed
-                { id: 'tentativeLaunchDate', label: 'Tentative Launch Date', type: 'date', readonly: true },
-                { id: 'unitsOrdered', label: 'Number of units ordered', type: 'number' },
+                { id: 'poId', label: 'Optival PO ID', type: 'text', required: true },
+                { id: 'productId', label: 'Product ID', type: 'text', required: true },
+                { id: 'deliveryDate', label: 'PO Date', type: 'date', required: true }, // <-- MODIFICATION: Label changed
+                { id: 'tentativeLaunchDate', label: 'Tentative Launch Date', type: 'date', readonly: true, required: true },
+                { id: 'unitsOrdered', label: 'Number of units ordered', type: 'number', required: true },
                 { id: 'upload', label: 'Upload PO', type: 'file' },
             ]
         },
@@ -2844,13 +2891,23 @@
             const isRowCompleted = ['Completed', 'Yes'].includes(rowStatus);
 
             let actionButtons = '';
+            
+            // --- MODIFICATION START ---
+            const overallTaskStatus = calculateWipStatus(task); // Get overall task status
+            
             if (isManagerView) {
+            // --- MODIFICATION END ---
                 // Manager View - No actions
             } else {
                 // Employee View
                 if (currentStage === 'pricing') {
                     
-                    if (rowStatus === 'WIP') {
+                    // --- MODIFICATION START ---
+                    if (overallTaskStatus === 'Launched') {
+                         actionButtons = ''; // No actions for pricing if product is launched
+                    }
+                    // --- MODIFICATION END ---
+                    else if (rowStatus === 'WIP') {
                         // If "WIP", show "Edit" and "Completed"
                         actionButtons = `
                             <button class="app-link text-xs font-semibold" onclick="handleEditWipEntry(${row.id})">Edit</button>
@@ -2916,11 +2973,14 @@
                 // No pricing data exists, let's create it from commercials
                 const proposal = proposals.find(p => p.id === task.proposalId);
                 if (proposal) {
-                    const matchingCommercial = proposal.commercials.data.find(c => 
-                        task.productName.endsWith('-' + c.productVariant) && 
-                        proposal.approvedCommercialIds && 
-                        proposal.approvedCommercialIds.includes(c.id)
-                    );
+                    // --- MODIFICATION START ---
+                    // const matchingCommercial = proposal.commercials.data.find(c => 
+                    //     task.productName.endsWith('-' + c.productVariant) && 
+                    //     proposal.approvedCommercialIds && 
+                    //     proposal.approvedCommercialIds.includes(c.id)
+                    // );
+                    const matchingCommercial = proposal.commercials.data.find(c => c.id === task.commercialId);
+                    // --- MODIFICATION END ---
                     
                     if (matchingCommercial) {
                         // We found the commercial data, now create a pricing entry from it
@@ -2934,7 +2994,7 @@
                             gstPercentage: matchingCommercial.gstPercentage,
                             moq: matchingCommercial.moq,
                             upload: '',
-                            status: 'WIP' // <-- This is the fix
+                            status: 'Completed' // <-- MODIFICATION: Was 'WIP'
                         };
 
                         // Perform calculations
@@ -3022,11 +3082,14 @@
             const proposal = proposals.find(p => p.id === task.proposalId);
             if (proposal) {
                 // Find the commercial entry that matches this task's product variant
-                const matchingCommercial = proposal.commercials.data.find(c => 
-                    task.productName.endsWith('-' + c.productVariant) && 
-                    proposal.approvedCommercialIds && 
-                    proposal.approvedCommercialIds.includes(c.id)
-                );
+                // --- MODIFICATION START ---
+                // const matchingCommercial = proposal.commercials.data.find(c => 
+                //     task.productName.endsWith('-' + c.productVariant) && 
+                //     proposal.approvedCommercialIds && 
+                //     proposal.approvedCommercialIds.includes(c.id)
+                // );
+                const matchingCommercial = proposal.commercials.data.find(c => c.id === task.commercialId);
+                // --- MODIFICATION END ---
                 
                 if (matchingCommercial) {
                     commercialData = matchingCommercial;
@@ -3202,11 +3265,16 @@
             
             let leadTime = 0;
             if (task && proposal) {
-                const matchingCommercial = proposal.commercials.data.find(c => 
-                    task.productName.endsWith('-' + c.productVariant) && 
-                    proposal.approvedCommercialIds && 
-                    proposal.approvedCommercialIds.includes(c.id)
-                );
+                // --- OLD LOGIC ---
+                // const matchingCommercial = proposal.commercials.data.find(c => 
+                //     task.productName.endsWith('-' + c.productVariant) && 
+                //     proposal.approvedCommercialIds && 
+                //     proposal.approvedCommercialIds.includes(c.id)
+                // );
+                
+                // --- NEW LOGIC ---
+                const matchingCommercial = proposal.commercials.data.find(c => c.id === task.commercialId);
+                
                 if (matchingCommercial && matchingCommercial.leadTime) {
                     leadTime = parseInt(matchingCommercial.leadTime, 10) || 0;
                 }
@@ -3242,6 +3310,9 @@
             calculateLaunchDate();
         }
 
+        // Set WIP stage modal submit label to 'Save' when editing, 'Add' when creating
+        const wipSaveBtn = document.getElementById('save-wip-stage-entry-btn');
+        if (wipSaveBtn) wipSaveBtn.textContent = currentEntryId ? 'Save' : 'Add';
         document.getElementById('wip-stage-entry-modal').classList.remove('hidden');
     }
     
@@ -3349,19 +3420,17 @@
             // --- MODIFICATION START ---
             if (currentStage === 'pricing') {
                 // Before overwriting, check if we need to store the old data
-                // --- NEW LOGIC ---
-                // We back up data IF:
-                // 1. The status is 'Completed' (it's a subsequent edit of an approved version)
-                // 2. The status is 'WIP' AND there is no 'oldData' backup yet (it's the *first* edit of an auto-populated entry)
-                const isFirstEditOfWip = (existingEntry.status === 'WIP' && !task.stages.pricing.oldData);
                 
-                if ((existingEntry.status === 'Completed' || isFirstEditOfWip) && !task.stages.pricing.oldData) {
-                // --- END NEW LOGIC ---
-                    // Store a copy of the 'Completed' or 'WIP' data before it gets overwritten
+                // --- NEW LOGIC ---
+                // If the existing status is 'Completed' and we don't have a backup yet, create one.
+                if (existingEntry.status === 'Completed' && !task.stages.pricing.oldData) {
+                    // Store a copy of the 'Completed' data before it gets overwritten
                     task.stages.pricing.oldData = { ...existingEntry };
                 }
-                // When employee saves, set to WIP
-                formData.status = 'WIP'; 
+                // --- END NEW LOGIC ---
+                
+                // When employee saves, KEEP status as 'Completed'
+                formData.status = 'Completed'; 
                 // Set flag for manager approval
                 task.stages.pricing.needsManagerApproval = true;
             }
@@ -3374,10 +3443,10 @@
              
             // --- MODIFICATION START ---
             if (currentStage === 'pricing') {
-                 // When employee adds new, set to WIP
-                 newEntry.status = 'WIP';
-                 // Set flag for manager approval
-                 task.stages.pricing.needsManagerApproval = true;
+                 // When employee adds new, set to Completed
+                 newEntry.status = 'Completed';
+                 // Do NOT set approval flag, this is the initial auto-population
+                 // task.stages.pricing.needsManagerApproval = true; // <-- REMOVED
             } else if (currentStage === 'agreement') {
                 newEntry.source = 'product'; // <--- ADDED
                 newEntry.status = 'Completed'; // <--- MODIFIED from 'WIP'
@@ -3853,6 +3922,9 @@
             document.getElementById('add-poc-btn').addEventListener('click', () => addPocFields({}, false));
         }
 
+        // Set Stage entry modal submit label to 'Save' when editing, 'Add' when creating
+        const stageSaveBtn = document.getElementById('save-stage-entry-btn');
+        if (stageSaveBtn) stageSaveBtn.textContent = currentEntryId ? 'Save' : 'Add';
         document.getElementById('stage-entry-modal').classList.remove('hidden');
     };
 
@@ -4567,6 +4639,7 @@
                  const newWipTask = {
                     id: `WIP-${String(Date.now() + approvedCount).slice(-4)}`, // Add count to ensure unique ID in loop
                     proposalId: p.id,
+                    commercialId: selectedCommercialId, // <-- ***** ADD THIS *****
                     productId: '', // Initially blank, fetched from PO Released stage
                     productName: productName,
                     vendorName: vendor ? vendor.vendorName : 'N/A',
@@ -4662,11 +4735,22 @@
         if (!p) return;
 
         // --- MODIFICATION START ---
+        currentWipId = null; // <-- THE FIX: Clear any stale WIP ID
+        // --- MODIFICATION END ---
+
+        // --- MODIFICATION START ---
         if (p.isApproved) {
             // Proposal is approved, first show product selection modal
             renderProductSelectionModal();
         } else {
             // Proposal is not approved, show owner transfer modal directly
+            
+            // --- FIX START ---
+            // We must clear productsToTransfer here, otherwise it might
+            // contain stale data from a previous approved transfer.
+            productsToTransfer = []; 
+            // --- FIX END ---
+            
             document.getElementById('newOwnerSearch').value = '';
             document.getElementById('newOwnerName').value = '';
             document.getElementById('owner-search-results').innerHTML = '';
@@ -4681,7 +4765,10 @@
         const p = proposals.find(prop => prop.id === currentProposalId);
         if (!p) return;
         
-        let tasks = wipTasks.filter(task => task.proposalId === p.id);
+        // --- MODIFICATION START ---
+        // let tasks = wipTasks.filter(task => task.proposalId === p.id); // <-- OLD
+        let tasks = wipTasks.filter(task => task.proposalId === p.id && !task.isCancelled); // <-- NEW: Exclude withdrawn (cancelled) tasks
+        // --- MODIFICATION END ---
 
         // --- MODIFICATION START: Filter products by owner if in Employee View ---
         if (!isManagerView) {
@@ -5593,14 +5680,19 @@
                     renderApprovedProposalsTable();
                     renderArchivedProposalsTable();
                     
+                    // --- MODIFICATION START ---
                     // If employee view, navigate away from detail view
-                    if (!isManagerView) {
-                         showView('proposals'); // Go back to the proposal list
-                    } else if (isManagerView) {
-                        // If manager, just re-render the detail view to show new owner
-                        renderProposalDetail(false, contextIsFromApprovedTab);
-                        showView('proposalDetail'); // <-- Make sure to show the view
-                    }
+                    // if (!isManagerView) { // <-- OLD
+                    //      showView('proposals'); // Go back to the proposal list // <-- OLD
+                    // } else if (isManagerView) { // <-- OLD
+                    //     // If manager, just re-render the detail view to show new owner // <-- OLD
+                    //     renderProposalDetail(false, contextIsFromApprovedTab); // <-- OLD
+                    //     showView('proposalDetail'); // <-- Make sure to show the view // <-- OLD
+                    // } // <-- OLD
+
+                    // User request: Always redirect to proposals page after transfer.
+                    showView('proposals'); // Go back to the proposal list
+                    // --- MODIFICATION END ---
                 }
             // --- MODIFICATION START: Added new 'else if' block ---
             } else if (productsToTransfer.length > 0) {
@@ -5996,6 +6088,7 @@
                     const newWipTask = {
                         id: `WIP-${String(Date.now() + approvedCount).slice(-4)}`,
                         proposalId: p.id,
+                        commercialId: commercialId, // <-- ***** ADD THIS *****
                         productId: '',
                         productName: productName,
                         vendorName: vendor ? vendor.vendorName : 'N/A',

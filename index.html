@@ -104,6 +104,56 @@
         }
         .inner-panel { display: none; }
         .inner-panel-active { display: block; }
+        
+        /* NEW STYLES FOR SUMMARY TABLE */
+        .summary-stage-col {
+            display: none;
+        }
+        .summary-table-expanded .summary-stage-col {
+            display: table-cell;
+        }
+        /* Global table normalization: consistent look across views */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+            color: #0f172a;
+        }
+        table thead th {
+            background-color: #f8fafc; /* light slate */
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.03em;
+            color: #475569;
+            border-bottom: 1px solid #e6eef5;
+        }
+        table th, table td {
+            padding: 0.65rem 0.75rem;
+            vertical-align: middle;
+            border-bottom: 1px solid #eef2f7;
+        }
+        table tbody tr:hover {
+            background-color: rgba(79,70,229,0.03); /* subtle indigo hover */
+        }
+        table tbody td {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        /* Allow specific cells to opt-out to wrap text */
+        .whitespace-normal { white-space: normal !important; }
+
+        /* Inputs inside tables should be compact and consistent */
+        table input[type="text"], table input[type="search"], table input[type="date"], table input[type="number"], table select {
+            box-sizing: border-box;
+            padding: 0.4rem 0.5rem;
+            border: 1px solid #e6edf3;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            background: #fff;
+        }
+        /* Responsive wrapper utility (some tables already use overflow wrappers) */
+        .table-responsive { overflow-x: auto; }
     </style>
 </head>
 <body class="bg-slate-50">
@@ -119,7 +169,7 @@
             <h1 class="text-xl font-semibold text-indigo-700">OHS Outlet Operations</h1>
         </header>
         <main class="p-4 md:p-8">
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-5">
                 <!-- Card: Workflow -->
                 <!-- Dashboard Card: Re-styled for a cleaner, left-aligned look -->
                 <div class="bg-green-50 p-5 rounded-xl shadow-sm flex items-center gap-4 border border-green-200/60 hover:shadow-md hover:border-green-400/80 transition-all cursor-pointer">
@@ -354,21 +404,65 @@
                     <div id="view-summary" class="view view-active">
                         <div class="flex justify-between items-center mb-4">
                             <h2 id="summary-title" class="text-xl font-semibold text-indigo-700">Employee Product Progress Summary</h2>
-                             <div>
-                                <label for="summary-fy-filter" class="block text-sm font-medium text-slate-700">Financial Year</label>
-                                <select id="summary-fy-filter" class="mt-1 block w-48 pl-3 pr-10 py-2 text-base border-slate-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
-                                </select>
-                            </div>
+                             <div class="flex space-x-4">
+                                <div>
+                                    <label for="summary-fy-filter" class="block text-sm font-medium text-slate-700">Financial Year</label>
+                                    <select id="summary-fy-filter" multiple size="5" class="mt-1 block w-48 pl-3 pr-10 py-2 text-base border-slate-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                                    </select>
+                                </div>
+                                <div class="flex items-end">
+                                    <button id="clear-filters-summary" type="button" class="ml-2 inline-flex items-center gap-2 bg-slate-200 text-slate-700 font-medium py-2 px-3 rounded-md hover:bg-slate-300 transition">Clear Filters</button>
+                                </div>
+                             </div>
                         </div>
                          <div class="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden">
                             <div class="overflow-x-auto">
-                                <table class="min-w-full divide-y divide-slate-200">
+                                <!-- MODIFICATION: Added id="summary-table" -->
+                                <table id="summary-table" class="min-w-full divide-y divide-slate-200">
                                     <thead class="bg-slate-50/75">
                                         <tr>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Emp ID</th>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Emp Name</th>
-                                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">WIP <span class="normal-case text-slate-400">&gt;&lt;</span></th>
+                                            <!-- MODIFICATION: Added id="wip-expand-th" -->
+                                            <th id="wip-expand-th" class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">WIP <button type="button" id="wip-expand-btn" class="normal-case">&lt;&gt;</button></th>
+                                            
+                                            <!-- MODIFICATION: Added all stage columns with class="summary-stage-col" -->
+                                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider summary-stage-col">Agreement Completed</th>
+                                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider summary-stage-col">Art Work Completed</th>
+                                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider summary-stage-col">Pricing Completed</th>
+                                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider summary-stage-col">Branding Completed</th>
+                                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider summary-stage-col">Vendor KYC Completed</th>
+                                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider summary-stage-col">PO released</th>
+                                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider summary-stage-col">Production Started</th>
+                                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider summary-stage-col">Raw Materials Procured</th>
+                                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider summary-stage-col">Packing Materials Procured</th>
+                                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider summary-stage-col">GRN Completed</th>
+                                            
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Launched</th>
+                                        </tr>
+                                        <!-- MODIFICATION: Added all filter cells -->
+                                        <tr class="bg-white">
+                                            <th class="px-6 py-2 text-left text-xs">
+                                                <input id="col-filter-summary-empId" type="text" placeholder="Filter ID" class="w-full form-input border border-slate-200 rounded px-2 py-1" />
+                                            </th>
+                                            <th class="px-6 py-2 text-left text-xs">
+                                                <input id="col-filter-summary-empName" type="text" placeholder="Filter name" class="w-full form-input border border-slate-200 rounded px-2 py-1" />
+                                            </th>
+                                            <th class="px-6 py-2 text-left text-xs"><!-- no filter for counts --></th>
+                                            
+                                            <!-- MODIFICATION: Added empty cells for stage columns -->
+                                            <th class="summary-stage-col px-6 py-2"></th>
+                                            <th class="summary-stage-col px-6 py-2"></th>
+                                            <th class="summary-stage-col px-6 py-2"></th>
+                                            <th class="summary-stage-col px-6 py-2"></th>
+                                            <th class="summary-stage-col px-6 py-2"></th>
+                                            <th class="summary-stage-col px-6 py-2"></th>
+                                            <th class="summary-stage-col px-6 py-2"></th>
+                                            <th class="summary-stage-col px-6 py-2"></th>
+                                            <th class="summary-stage-col px-6 py-2"></th>
+                                            <th class="summary-stage-col px-6 py-2"></th>
+                                            
+                                            <th class="px-6 py-2 text-left text-xs"><!-- no filter for counts --></th>
                                         </tr>
                                     </thead>
                                     <tbody id="summary-table-body" class="bg-white divide-y divide-slate-200 [&>tr:nth-child(even)]:bg-slate-50/50"></tbody>
@@ -403,30 +497,14 @@
                             </button>
                         </div>
 
-                        <!-- Filters -->
-                        <div class="flex space-x-4 mb-4 bg-white p-4 rounded-lg border border-slate-200/80 shadow-sm">
+                        <!-- Filters (Financial Year retained; column filters moved to table header) -->
+                        <div class="flex space-x-4 mb-4 bg-white p-4 rounded-lg border border-slate-200/80 shadow-sm justify-end">
                             <div>
                                 <label for="filter-proposal-fy" class="block text-sm font-medium text-slate-700">Financial Year</label>
-                                <select id="filter-proposal-fy" class="mt-1 block w-48 pl-3 pr-10 py-2 text-base border-slate-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"></select>
+                                <select id="filter-proposal-fy" multiple size="5" class="mt-1 block w-48 pl-3 pr-10 py-2 text-base border-slate-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"></select>
                             </div>
-                            <div>
-                                <label for="filter-product-type" class="block text-sm font-medium text-slate-700">Filter by Product Type</label>
-                                <select id="filter-product-type" class="mt-1 block w-48 pl-3 pr-10 py-2 text-base border-slate-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
-                                    <option>All</option>
-                                    <option>Pharma</option>
-                                    <option>FMCG</option>
-                                    <option>Surgical</option>
-                                    <option>Device</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label for="filter-status" class="block text-sm font-medium text-slate-700">Filter by Status</label>
-                                <select id="filter-status" class="mt-1 block w-48 pl-3 pr-10 py-2 text-base border-slate-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
-                                     <option>All</option>
-                                     <option>Pending</option>
-                                     <option>WIP</option>
-                                     <option>Approval Pending</option>
-                                </select>
+                            <div class="flex items-end">
+                                <button id="clear-filters-current" type="button" class="ml-4 inline-flex items-center gap-2 bg-slate-200 text-slate-700 font-medium py-2 px-3 rounded-md hover:bg-slate-300 transition">Clear Filters</button>
                             </div>
                         </div>
                         
@@ -443,6 +521,38 @@
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Created On</th>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Created by</th>
                                         </tr>
+                                        <tr class="bg-white">
+                                            <th class="px-6 py-2 text-left text-xs"><!-- empty for id --></th>
+                                            <th class="px-6 py-2 text-left text-xs">
+                                                <select id="col-filter-productType" class="mt-1 block w-full pl-2 pr-2 py-1 text-sm border-slate-200 rounded">
+                                                    <option value="">All</option>
+                                                    <option>Pharma</option>
+                                                    <option>FMCG</option>
+                                                    <option>Surgical</option>
+                                                    <option>Device</option>
+                                                </select>
+                                            </th>
+                                            <th class="px-6 py-2 text-left text-xs">
+                                                <input id="col-filter-description" type="search" placeholder="Search description" class="mt-1 block w-full pl-2 pr-2 py-1 text-sm border-slate-200 rounded">
+                                            </th>
+                                            <th class="px-6 py-2 text-left text-xs">
+                                                <select id="col-filter-status" class="mt-1 block w-full pl-2 pr-2 py-1 text-sm border-slate-200 rounded">
+                                                    <option value="">All</option>
+                                                    <option>Pending</option>
+                                                    <option>WIP</option>
+                                                    <option>Approval Pending</option>
+                                                </select>
+                                            </th>
+                                            <th class="px-6 py-2 text-left text-xs">
+                                                <input id="col-filter-owner" type="search" placeholder="Search owner" class="mt-1 block w-full pl-2 pr-2 py-1 text-sm border-slate-200 rounded">
+                                            </th>
+                                            <th class="px-6 py-2 text-left text-xs">
+                                                <input id="col-filter-createdOn" type="date" class="mt-1 block w-full pl-2 pr-2 py-1 text-sm border-slate-200 rounded">
+                                            </th>
+                                            <th class="px-6 py-2 text-left text-xs">
+                                                <input id="col-filter-createdBy" type="search" placeholder="Search created by" class="mt-1 block w-full pl-2 pr-2 py-1 text-sm border-slate-200 rounded">
+                                            </th>
+                                        </tr>
                                     </thead>
                                     <tbody id="proposals-table-body" class="bg-white divide-y divide-slate-200 [&>tr:nth-child(even)]:bg-slate-50/50"></tbody>
                                 </table>
@@ -457,17 +567,10 @@
                              <div class="flex space-x-4">
                                 <div>
                                     <label for="filter-approved-fy" class="block text-sm font-medium text-slate-700">Financial Year</label>
-                                    <select id="filter-approved-fy" class="mt-1 block w-48 pl-3 pr-10 py-2 text-base border-slate-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"></select>
+                                    <select id="filter-approved-fy" multiple size="5" class="mt-1 block w-48 pl-3 pr-10 py-2 text-base border-slate-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"></select>
                                 </div>
-                                <div>
-                                    <label for="filter-approved-product-type" class="block text-sm font-medium text-slate-700">Product Type</label>
-                                    <select id="filter-approved-product-type" class="mt-1 block w-48 pl-3 pr-10 py-2 text-base border-slate-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
-                                        <option>All</option>
-                                        <option>Pharma</option>
-                                        <option>FMCG</option>
-                                        <option>Surgical</option>
-                                        <option>Device</option>
-                                    </select>
+                                <div class="flex items-end">
+                                    <button id="clear-filters-approved" type="button" class="ml-2 inline-flex items-center gap-2 bg-slate-200 text-slate-700 font-medium py-2 px-3 rounded-md hover:bg-slate-300 transition">Clear Filters</button>
                                 </div>
                              </div>
                          </div>
@@ -478,8 +581,46 @@
                                         <tr>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Proposal ID</th>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Product Type</th>
+                                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Description</th>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Owner</th>
+                                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Approved Commercials</th>
+                                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Pending Commercials</th>
+                                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Created On</th>
+                                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Created by</th>
+                                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Approved By</th>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Approved On</th>
+                                        </tr>
+                                        <tr class="bg-white">
+                                            <th class="px-6 py-2 text-left text-xs"><!-- empty for id --></th>
+                                            <th class="px-6 py-2 text-left text-xs">
+                                                <select id="col-filter-approved-productType" class="mt-1 block w-full pl-2 pr-2 py-1 text-sm border-slate-200 rounded">
+                                                    <option value="">All</option>
+                                                    <option>Pharma</option>
+                                                    <option>FMCG</option>
+                                                    <option>Surgical</option>
+                                                    <option>Device</option>
+                                                </select>
+                                            </th>
+                                            <th class="px-6 py-2 text-left text-xs">
+                                                <input id="col-filter-approved-description" type="search" placeholder="Search description" class="mt-1 block w-full pl-2 pr-2 py-1 text-sm border-slate-200 rounded">
+                                            </th>
+                                            <th class="px-6 py-2 text-left text-xs">
+                                                <input id="col-filter-approved-owner" type="search" placeholder="Search owner" class="mt-1 block w-full pl-2 pr-2 py-1 text-sm border-slate-200 rounded">
+                                            </th>
+                                            <th class="px-6 py-2 text-left text-xs"><!-- no filter for counts --></th>
+                                            <th class="px-6 py-2 text-left text-xs"><!-- no filter for counts --></th>
+                                            <th class="px-6 py-2 text-left text-xs">
+                                                <input id="col-filter-approved-createdOn" type="date" class="mt-1 block w-full pl-2 pr-2 py-1 text-sm border-slate-200 rounded">
+                                            </th>
+                                            <th class="px-6 py-2 text-left text-xs">
+                                                <input id="col-filter-approved-createdBy" type="search" placeholder="Search created by" class="mt-1 block w-full pl-2 pr-2 py-1 text-sm border-slate-200 rounded">
+                                            </th>
+                                            <th class="px-6 py-2 text-left text-xs">
+                                                <input id="col-filter-approved-approvedBy" type="search" placeholder="Search approved by" class="mt-1 block w-full pl-2 pr-2 py-1 text-sm border-slate-200 rounded">
+                                            </th>
+                                            <th class="px-6 py-2 text-left text-xs">
+                                                <input id="col-filter-approved-approvedOn" type="date" class="mt-1 block w-full pl-2 pr-2 py-1 text-sm border-slate-200 rounded">
+                                            </th>
                                         </tr>
                                     </thead>
                                     <tbody id="approved-proposals-table-body" class="bg-white divide-y divide-slate-200 [&>tr:nth-child(even)]:bg-slate-50/50"></tbody>
@@ -495,26 +636,11 @@
                              <div class="flex space-x-4">
                                 <div>
                                     <label for="filter-archived-fy" class="block text-sm font-medium text-slate-700">Financial Year</label>
-                                    <select id="filter-archived-fy" class="mt-1 block w-48 pl-3 pr-10 py-2 text-base border-slate-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"></select>
+                                    <select id="filter-archived-fy" multiple size="5" class="mt-1 block w-48 pl-3 pr-10 py-2 text-base border-slate-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"></select>
                                 </div>
-                                <div>
-                                    <label for="filter-archived-product-type" class="block text-sm font-medium text-slate-700">Product Type</label>
-                                    <select id="filter-archived-product-type" class="mt-1 block w-48 pl-3 pr-10 py-2 text-base border-slate-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
-                                        <option>All</option>
-                                        <option>Pharma</option>
-                                        <option>FMCG</option>
-                                        <option>Surgical</option>
-                                        <option>Device</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label for="filter-archived-status" class="block text-sm font-medium text-slate-700">Status</label>
-                                    <select id="filter-archived-status" class="mt-1 block w-48 pl-3 pr-10 py-2 text-base border-slate-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
-                                        <option>All</option>
-                                        <option>Rejected</option>
-                                        <option>Withdrawn</option>
-                                    </select>
-                                </div>
+                                    <div class="flex items-end">
+                                        <button id="clear-filters-archived" type="button" class="ml-2 inline-flex items-center gap-2 bg-slate-200 text-slate-700 font-medium py-2 px-3 rounded-md hover:bg-slate-300 transition">Clear Filters</button>
+                                    </div>
                              </div>
                          </div>
                           <div class="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden">
@@ -529,6 +655,45 @@
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Owner</th>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Created On</th>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Created by</th>
+                                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Rejected/Withdrawn By</th>
+                                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Rejected/Withdrawn On</th>
+                                        </tr>
+                                        <tr class="bg-white">
+                                            <th class="px-6 py-2 text-left text-xs"><!-- empty for id --></th>
+                                            <th class="px-6 py-2 text-left text-xs">
+                                                <select id="col-filter-arch-productType" class="mt-1 block w-full pl-2 pr-2 py-1 text-sm border-slate-200 rounded">
+                                                    <option value="">All</option>
+                                                    <option>Pharma</option>
+                                                    <option>FMCG</option>
+                                                    <option>Surgical</option>
+                                                    <option>Device</option>
+                                                </select>
+                                            </th>
+                                            <th class="px-6 py-2 text-left text-xs">
+                                                <input id="col-filter-arch-description" type="search" placeholder="Search description" class="mt-1 block w-full pl-2 pr-2 py-1 text-sm border-slate-200 rounded">
+                                            </th>
+                                            <th class="px-6 py-2 text-left text-xs">
+                                                <select id="col-filter-arch-status" class="mt-1 block w-full pl-2 pr-2 py-1 text-sm border-slate-200 rounded">
+                                                    <option value="">All</option>
+                                                    <option>Rejected</option>
+                                                    <option>Withdrawn</option>
+                                                </select>
+                                            </th>
+                                            <th class="px-6 py-2 text-left text-xs">
+                                                <input id="col-filter-arch-owner" type="search" placeholder="Search owner" class="mt-1 block w-full pl-2 pr-2 py-1 text-sm border-slate-200 rounded">
+                                            </th>
+                                            <th class="px-6 py-2 text-left text-xs">
+                                                <input id="col-filter-arch-createdOn" type="date" class="mt-1 block w-full pl-2 pr-2 py-1 text-sm border-slate-200 rounded">
+                                            </th>
+                                            <th class="px-6 py-2 text-left text-xs">
+                                                <input id="col-filter-arch-createdBy" type="search" placeholder="Search created by" class="mt-1 block w-full pl-2 pr-2 py-1 text-sm border-slate-200 rounded">
+                                            </th>
+                                            <th class="px-6 py-2 text-left text-xs">
+                                                <input id="col-filter-arch-rejectedBy" type="search" placeholder="Search rejected/withdrawn by" class="mt-1 block w-full pl-2 pr-2 py-1 text-sm border-slate-200 rounded">
+                                            </th>
+                                            <th class="px-6 py-2 text-left text-xs">
+                                                <input id="col-filter-arch-rejectedOn" type="date" class="mt-1 block w-full pl-2 pr-2 py-1 text-sm border-slate-200 rounded">
+                                            </th>
                                         </tr>
                                     </thead>
                                     <tbody id="archived-proposals-table-body" class="bg-white divide-y divide-slate-200 [&>tr:nth-child(even)]:bg-slate-50/50"></tbody>
@@ -577,9 +742,12 @@
                         <!-- Filter on the right, aligned with tabs -->
                         <div class="flex items-center space-x-2">
                             <label for="filter-new-products-fy" class="block text-sm font-medium text-slate-700">Financial Year</label>
-                            <select id="filter-new-products-fy" class="mt-1 block w-48 pl-3 pr-10 py-2 text-base border-slate-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                            <select id="filter-new-products-fy" multiple size="5" class="mt-1 block w-48 pl-3 pr-10 py-2 text-base border-slate-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
                                 <!-- Options will be populated by JS -->
                             </select>
+                            <div class="ml-3">
+                                <button id="clear-filters-new-products" type="button" class="inline-flex items-center gap-2 bg-slate-200 text-slate-700 font-medium py-2 px-3 rounded-md hover:bg-slate-300 transition">Clear Filters</button>
+                            </div>
                         </div>
                     </div>
 
@@ -599,6 +767,22 @@
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Created On</th>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Created By</th>
                                         </tr>
+                                            <tr>
+                                                <td class="px-6 py-2"></td>
+                                                <td class="px-6 py-2"><input id="col-filter-wip-productName" type="text" placeholder="Filter product" class="w-full form-input" /></td>
+                                                <td class="px-6 py-2"></td>
+                                                <td class="px-6 py-2"><input id="col-filter-wip-vendorName" type="text" placeholder="Filter vendor" class="w-full form-input" /></td>
+                                                <td class="px-6 py-2">
+                                                    <select id="col-filter-wip-status" class="w-full form-select">
+                                                        <option value="">All</option>
+                                                        <option value="WIP">WIP</option>
+                                                        <option value="Approval Pending">Approval Pending</option>
+                                                    </select>
+                                                </td>
+                                                <td class="px-6 py-2"><input id="col-filter-wip-owner" type="text" placeholder="Filter owner" class="w-full form-input" /></td>
+                                                <td class="px-6 py-2"><input id="col-filter-wip-createdOn" type="date" class="w-full form-input" /></td>
+                                                <td class="px-6 py-2"><input id="col-filter-wip-createdBy" type="text" placeholder="Filter created by" class="w-full form-input" /></td>
+                                            </tr>
                                     </thead>
                                     <!-- CHANGED ID -->
                                     <tbody id="new-products-table-body-wip" class="bg-white divide-y divide-slate-200 [&>tr:nth-child(even)]:bg-slate-50/50"></tbody>
@@ -618,10 +802,22 @@
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Product Name</th>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Proposal Id</th>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Vendor Name</th>
-                                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Owner</th>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Created On</th>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Created By</th>
+                                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Launched On</th>
+                                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Launched By</th>
+                                        </tr>
+                                        <tr>
+                                            <td class="px-6 py-2"></td>
+                                            <td class="px-6 py-2"><input id="col-filter-launched-productName" type="text" placeholder="Filter product" class="w-full form-input" /></td>
+                                            <td class="px-6 py-2"></td>
+                                            <td class="px-6 py-2"><input id="col-filter-launched-vendorName" type="text" placeholder="Filter vendor" class="w-full form-input" /></td>
+                                            <td class="px-6 py-2"><input id="col-filter-launched-owner" type="text" placeholder="Filter owner" class="w-full form-input" /></td>
+                                            <td class="px-6 py-2"><input id="col-filter-launched-createdOn" type="date" class="w-full form-input" /></td>
+                                            <td class="px-6 py-2"><input id="col-filter-launched-createdBy" type="text" placeholder="Filter created by" class="w-full form-input" /></td>
+                                            <td class="px-6 py-2"><input id="col-filter-launched-launchedOn" type="date" class="w-full form-input" /></td>
+                                            <td class="px-6 py-2"><input id="col-filter-launched-launchedBy" type="text" placeholder="Filter launched by" class="w-full form-input" /></td>
                                         </tr>
                                     </thead>
                                     <!-- ADDED ID -->
@@ -642,12 +838,24 @@
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Product Name</th>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Proposal Id</th>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Vendor Name</th>
-                                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Owner</th>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Created On</th>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Created By</th>
-                                        </tr>
-                                    </thead>
+                                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Withdrawn On</th>
+                                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Withdrawn By</th>
+                                            </tr>
+                                            <tr>
+                                                <td class="px-6 py-2"></td>
+                                                <td class="px-6 py-2"><input id="col-filter-withdrawn-productName" type="text" placeholder="Filter product" class="w-full form-input" /></td>
+                                                <td class="px-6 py-2"></td>
+                                                <td class="px-6 py-2"><input id="col-filter-withdrawn-vendorName" type="text" placeholder="Filter vendor" class="w-full form-input" /></td>
+                                                <td class="px-6 py-2"><input id="col-filter-withdrawn-owner" type="text" placeholder="Filter owner" class="w-full form-input" /></td>
+                                                <td class="px-6 py-2"><input id="col-filter-withdrawn-createdOn" type="date" class="w-full form-input" /></td>
+                                                <td class="px-6 py-2"><input id="col-filter-withdrawn-createdBy" type="text" placeholder="Filter created by" class="w-full form-input" /></td>
+                                                <td class="px-6 py-2"><input id="col-filter-withdrawn-withdrawnOn" type="date" class="w-full form-input" /></td>
+                                                <td class="px-6 py-2"><input id="col-filter-withdrawn-withdrawnBy" type="text" placeholder="Filter withdrawn by" class="w-full form-input" /></td>
+                                            </tr>
+                                        </thead>
                                     <!-- ADDED ID -->
                                     <tbody id="new-products-table-body-withdrawn" class="bg-white divide-y divide-slate-200 [&>tr:nth-child(even)]:bg-slate-50/50"></tbody>
                                 </table>
@@ -795,16 +1003,16 @@
                 </div>
                 <form id="proposal-form" class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label for="productType" class="block text-sm font-medium text-slate-700">Product Type *</label>
+                        <label for="productType" class="block text-sm font-medium text-slate-700">Product Type <span class="text-red-500">*</span></label>
                         <select id="productType" required class="mt-1 block w-full border-slate-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"></select>
                     </div>
-                    <div>
+                    <div class="md:col-span-2">
+                        <label for="description" class="block text-sm font-medium text-slate-700">Description <span class="text-red-500">*</span></label>
+                        <textarea id="description" rows="3" class="mt-1 block w-full border-slate-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500" required></textarea>
+                    </div>
+                    <div id="packSize-container" class="md:col-span-2 hidden">
                         <label for="packSize" class="block text-sm font-medium text-slate-700">Pack Size (Optional)</label>
                         <input type="number" id="packSize" class="mt-1 block w-full border-slate-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                    </div>
-                    <div class="md:col-span-2">
-                        <label for="description" class="block text-sm font-medium text-slate-700">Description (Optional)</label>
-                        <textarea id="description" rows="3" class="mt-1 block w-full border-slate-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"></textarea>
                     </div>
                     <div id="pharma-fields" class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
@@ -954,6 +1162,11 @@
         <label for="grnDate" class="block text-sm font-medium text-slate-700">GRN Date</label>
         <input type="date" id="grnDate" class="mt-1 block w-full border-slate-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500" required>
       </div>
+
+            <div>
+                <label for="grnQuantity" class="block text-sm font-medium text-slate-700">GRN Quantity</label>
+                <input type="number" id="grnQuantity" min="0" step="1" class="mt-1 block w-full border-slate-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500" required>
+            </div>
 
       <div class="flex justify-end pt-4 border-t mt-4">
         <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700">Save</button>
@@ -1135,7 +1348,7 @@
         {
             id: 'P2025-001',
             productType: 'Pharma', packSize: '100', auditForm: 'Tablets', composition: 'Paracetamol 500mg', description: 'Standard 500mg Paracetamol tablets for fever and pain relief.',
-            createdDate: '15-05-2025', approvedDate: '01-06-2025', isApproved: true, finalizedVendorId: 1, owner: 'Alice', createdBy: 'Alice',
+            createdDate: '15-05-2025', approvedDate: '01-06-2025', isApproved: true, approvedBy: 'Manager', finalizedVendorId: 1, owner: 'Alice', createdBy: 'Alice',
             approvedCommercialIds: [3, 16], // <-- MODIFIED THIS LINE
             vendorIdentification: { status: 'Completed', data: [
                 { id: 1, vendorName: 'Global Pharma', vendorType: 'Domestic', vendorState: 'Maharashtra', pocs: [{pocName: 'John Doe', pocMobileNo: '1234567890', email: 'john@global.com', pocRole: 'Sales Head'}], categoryCompositionExpertise: 'Tablet formulations', keyPartnersBrands: 'Cipla, Sun Pharma', gstNo: 'GSTIN123', plantVisit: '20-05-2025', remarks: 'Initial contact positive.', status: 'Completed' },
@@ -1151,7 +1364,7 @@
         {
             id: 'P2025-002',
             productType: 'FMCG', categoryL1: 'Beverage', categoryL2: 'Juices', categoryL3: 'Apple', description: '1 liter tetra pack of fresh apple juice, no added sugar.',
-            createdDate: '18-06-2025', approvedDate: '05-07-2025', isApproved: true, finalizedVendorId: 4, owner: 'Bob', createdBy: 'Bob',
+            createdDate: '18-06-2025', approvedDate: '05-07-2025', isApproved: true, approvedBy: 'Manager', finalizedVendorId: 4, owner: 'Bob', createdBy: 'Bob',
             approvedCommercialIds: [6], // <-- THIS LINE WAS ADDED
             vendorIdentification: { status: 'Completed', data: [{ id: 4, vendorName: 'Fresh Juices Inc.', vendorType: 'Domestic', vendorState: 'Karnataka', pocs: [{pocName: 'Mike Ross', pocMobileNo: '5555555555', email: 'mike@fresh.com', pocRole: 'Sales Director'}], categoryCompositionExpertise: 'Fruit Juices', keyPartnersBrands: 'Tropicana', gstNo: 'GSTIN789', plantVisit: '25-06-2025', remarks: 'Excellent setup.', status: 'Completed' }]},
             sample: { status: 'Completed', data: [{ id: 5, vendorId: 4, vendorName: 'Fresh Juices Inc.', sampleName: 'Apple Juice Lot #123', receivedDate: '28-06-2025', labTesting: 'Tested & Passed', testedOn: 100, avgRating: 4.8, remarks: 'Great taste.', status: 'Completed' }]},
@@ -1176,7 +1389,7 @@
             vendorIdentification: { status: 'WIP', data: [
                 { id: 7, vendorName: 'MedTech Devices', vendorType: 'Domestic', vendorState: 'Telangana', pocs: [{pocName: 'David Chen', pocMobileNo: '1112223333', email: 'david@med.tech', pocRole: 'BDM'}], categoryCompositionExpertise: 'Medical Devices', keyPartnersBrands: 'Philips', gstNo: 'GSTIN101', plantVisit: '20-08-2025', remarks: 'Plant visit done', status: 'Completed' },
                 { id: 13, vendorName: 'HealthGadgets', vendorType: 'Domestic', vendorState: 'Karnataka', pocs: [{pocName: 'Grace Hopper', pocMobileNo: '9876543210', email: 'grace@health.io', pocRole: 'CTO'}], categoryCompositionExpertise: 'Health Monitors', keyPartnersBrands: 'Omron', gstNo: 'GSTIN555', plantVisit: '', remarks: 'Initial talks only', status: 'WIP' },
-                { id: 15, vendorName: 'Pharma Global AG', vendorType: 'International', vendorCountry: 'Germany', pocs: [{pocName: 'Hans Zimmer', pocMobileNo: '+4912345678', email: 'hans@pharma.de', pocRole: 'EU Sales'}], categoryCompositionExpertise: 'APIs', keyPartnersBrands: 'Bayer', gstNo: 'N/A', plantVisit: '', remarks: 'Initial contact via email', status: 'WIP' }
+                { id: 15, vendorName: 'Pharma Global AG', vendorType: 'International', vendorCountry: 'Germany', pocs: [{pocName: 'Hans Zimmer', pocMobileNo: '+4912345678', email: 'hans@pharma.de', pocRole: 'EU Sales'}], categoryCompositionExpertise: 'APIs', keyPartnersBrands: 'Bayer', gstNo: 'GSTIN444', plantVisit: '', remarks: 'Initial contact via email', status: 'WIP' }
             ]},
             sample: { status: 'Pending', data: [] },
             commercials: { status: 'Pending', data: [] },
@@ -1195,6 +1408,7 @@
             id: 'P2025-006',
             productType: 'FMCG', packSize: '250', categoryL1: 'Snack Foods', categoryL2: 'Chips', categoryL3: 'Potato', description: 'Classic salted potato chips.',
             createdDate: '20-08-2025', owner: 'Charlie', createdBy: 'Charlie', isApproved: false, isRejected: true,
+            rejectedDate: '05-10-2025', rejectedBy: 'Manager',
             vendorIdentification: { status: 'Completed', data: []},
             sample: { status: 'Completed', data: [] },
             commercials: { status: 'WIP', data: [] },
@@ -1204,6 +1418,7 @@
             id: 'P2025-007',
             productType: 'Pharma', packSize: '30', auditForm: 'Inhalers', composition: 'Salbutamol', description: 'Asthma relief inhaler.',
             createdDate: '22-09-2025', owner: 'Alice', createdBy: 'Alice', isApproved: false, isWithdrawn: true,
+            withdrawnDate: '30-09-2025', withdrawnBy: 'Manager',
             vendorIdentification: { status: 'Pending', data: [] },
             sample: { status: 'Pending', data: [] },
             commercials: { status: 'Pending', data: [] },
@@ -1498,9 +1713,28 @@
 
     // --- RENDER FUNCTIONS ---
     const renderProposalsTable = () => {
-        const selectedType = document.getElementById('filter-product-type').value;
-        const selectedStatus = document.getElementById('filter-status').value;
-        const selectedFY = document.getElementById('filter-proposal-fy').value;
+        const fyEl = document.getElementById('filter-proposal-fy');
+        const selectedFYs = fyEl ? Array.from(fyEl.selectedOptions).map(o => o.value).filter(v => v) : [];
+        const includeAllFy = selectedFYs.length === 0;
+        const getFyFromDateStr = (dateStr) => {
+            const d = parseDateForSorting(dateStr);
+            const y = d.getFullYear(); const m = d.getMonth();
+            return (m >= 3) ? `${y}-${y+1}` : `${y-1}-${y}`;
+        };
+        // Column level filters
+        const colTypeEl = document.getElementById('col-filter-productType');
+        const colDescEl = document.getElementById('col-filter-description');
+        const colStatusEl = document.getElementById('col-filter-status');
+        const colOwnerEl = document.getElementById('col-filter-owner');
+        const colCreatedOnEl = document.getElementById('col-filter-createdOn');
+        const colCreatedByEl = document.getElementById('col-filter-createdBy');
+
+        const colType = colTypeEl ? colTypeEl.value : '';
+        const colDesc = colDescEl ? colDescEl.value.trim().toLowerCase() : '';
+        const colStatus = colStatusEl ? colStatusEl.value : '';
+        const colOwner = colOwnerEl ? colOwnerEl.value.trim().toLowerCase() : '';
+        const colCreatedOn = colCreatedOnEl ? colCreatedOnEl.value : '';
+        const colCreatedBy = colCreatedByEl ? colCreatedByEl.value.trim().toLowerCase() : '';
         
         const tbody = document.getElementById('proposals-table-body');
         tbody.innerHTML = '';
@@ -1511,22 +1745,37 @@
             filteredProposals = filteredProposals.filter(p => p.owner === currentUser.name);
         }
 
-        if (selectedFY) {
-            const [startYear, endYear] = selectedFY.split('-').map(Number);
-            const startDate = new Date(startYear, 3, 1); // April 1st
-            const endDate = new Date(endYear, 2, 31); // March 31st
+        if (!includeAllFy) {
+            filteredProposals = filteredProposals.filter(p => selectedFYs.includes(getFyFromDateStr(p.createdDate)));
+        }
+
+        // Apply column filters (all combined as AND)
+        if (colType) {
+            filteredProposals = filteredProposals.filter(p => p.productType === colType);
+        }
+
+        if (colDesc) {
+            filteredProposals = filteredProposals.filter(p => ((p.description || '') + '').toLowerCase().includes(colDesc));
+        }
+
+        if (colStatus) {
+            filteredProposals = filteredProposals.filter(p => calculateProposalStatus(p) === colStatus);
+        }
+
+        if (colOwner) {
+            filteredProposals = filteredProposals.filter(p => ((p.owner || '') + '').toLowerCase().includes(colOwner));
+        }
+
+        if (colCreatedOn) {
+            const filterDate = new Date(colCreatedOn);
             filteredProposals = filteredProposals.filter(p => {
-                 const proposalDate = parseDateForSorting(p.createdDate);
-                 return proposalDate >= startDate && proposalDate <= endDate;
+                const created = parseDateForSorting(p.createdDate);
+                return created.getFullYear() === filterDate.getFullYear() && created.getMonth() === filterDate.getMonth() && created.getDate() === filterDate.getDate();
             });
         }
 
-        if (selectedType !== 'All') {
-            filteredProposals = filteredProposals.filter(p => p.productType === selectedType);
-        }
-
-        if (selectedStatus !== 'All') {
-            filteredProposals = filteredProposals.filter(p => calculateProposalStatus(p) === selectedStatus);
+        if (colCreatedBy) {
+            filteredProposals = filteredProposals.filter(p => ((p.createdBy || '') + '').toLowerCase().includes(colCreatedBy));
         }
         
         filteredProposals.sort((a, b) => parseDateForSorting(b.createdDate) - parseDateForSorting(a.createdDate));
@@ -1543,8 +1792,21 @@
             }; showView('proposalDetail'); }); tbody.appendChild(row); });
     };
     const renderApprovedProposalsTable = () => {
-        const selectedFY = document.getElementById('filter-approved-fy').value;
-        const selectedType = document.getElementById('filter-approved-product-type').value;
+        const apprFyEl = document.getElementById('filter-approved-fy');
+        const selectedApprovedFYs = apprFyEl ? Array.from(apprFyEl.selectedOptions).map(o => o.value).filter(v => v) : [];
+        const includeAllApprovedFy = selectedApprovedFYs.length === 0;
+        const getFyFromDateStr = (dateStr) => {
+            const d = parseDateForSorting(dateStr);
+            const y = d.getFullYear(); const m = d.getMonth();
+            return (m >= 3) ? `${y}-${y+1}` : `${y-1}-${y}`;
+        };
+        const colType = (document.getElementById('col-filter-approved-productType') && document.getElementById('col-filter-approved-productType').value) || '';
+        const colDesc = (document.getElementById('col-filter-approved-description') && document.getElementById('col-filter-approved-description').value.trim().toLowerCase()) || '';
+        const colOwner = (document.getElementById('col-filter-approved-owner') && document.getElementById('col-filter-approved-owner').value.trim().toLowerCase()) || '';
+        const colApprovedBy = (document.getElementById('col-filter-approved-approvedBy') && document.getElementById('col-filter-approved-approvedBy').value.trim().toLowerCase()) || '';
+        const colApprovedOn = (document.getElementById('col-filter-approved-approvedOn') && document.getElementById('col-filter-approved-approvedOn').value) || '';
+        const colCreatedOn = (document.getElementById('col-filter-approved-createdOn') && document.getElementById('col-filter-approved-createdOn').value) || '';
+        const colCreatedBy = (document.getElementById('col-filter-approved-createdBy') && document.getElementById('col-filter-approved-createdBy').value.trim().toLowerCase()) || '';
         const tbody = document.getElementById('approved-proposals-table-body');
         tbody.innerHTML = '';
         
@@ -1554,25 +1816,63 @@
             approved = approved.filter(p => p.owner === currentUser.name);
         }
 
-        if (selectedFY) {
-            const [startYear, endYear] = selectedFY.split('-').map(Number);
-            const startDate = new Date(startYear, 3, 1);
-            const endDate = new Date(endYear, 2, 31);
+        if (!includeAllApprovedFy) {
+            approved = approved.filter(p => selectedApprovedFYs.includes(getFyFromDateStr(p.approvedDate)));
+        }
+
+        if (colType) {
+            approved = approved.filter(p => p.productType === colType);
+        }
+
+        if (colDesc) {
+            approved = approved.filter(p => ((p.description || '') + '').toLowerCase().includes(colDesc));
+        }
+
+        if (colOwner) {
+            approved = approved.filter(p => ((p.owner || '') + '').toLowerCase().includes(colOwner));
+        }
+
+        if (colApprovedBy) {
+            approved = approved.filter(p => ((p.approvedBy || '') + '').toLowerCase().includes(colApprovedBy));
+        }
+
+        if (colApprovedOn) {
+            const filterDate = new Date(colApprovedOn);
             approved = approved.filter(p => {
-                const approvedDate = parseDateForSorting(p.approvedDate);
-                return approvedDate >= startDate && approvedDate <= endDate;
+                const d = parseDateForSorting(p.approvedDate);
+                return d.getFullYear() === filterDate.getFullYear() && d.getMonth() === filterDate.getMonth() && d.getDate() === filterDate.getDate();
             });
         }
 
-        if (selectedType !== 'All') {
-            approved = approved.filter(p => p.productType === selectedType);
+        if (colCreatedOn) {
+            const filterDate = new Date(colCreatedOn);
+            approved = approved.filter(p => {
+                const created = parseDateForSorting(p.createdDate);
+                return created.getFullYear() === filterDate.getFullYear() && created.getMonth() === filterDate.getMonth() && created.getDate() === filterDate.getDate();
+            });
+        }
+
+        if (colCreatedBy) {
+            approved = approved.filter(p => ((p.createdBy || '') + '').toLowerCase().includes(colCreatedBy));
         }
 
         approved.sort((a, b) => parseDateForSorting(b.approvedDate) - parseDateForSorting(a.approvedDate));
         
-        if(approved.length === 0) { tbody.innerHTML = `<tr><td colspan="4" class="text-center py-10 text-slate-500">No approved proposals match the current filters.</td></tr>`; return; }
+        if(approved.length === 0) { tbody.innerHTML = `<tr><td colspan="10" class="text-center py-10 text-slate-500">No approved proposals match the current filters.</td></tr>`; return; }
         
-        approved.forEach(p => { const row = document.createElement('tr'); row.className = 'hover:bg-indigo-100/50 cursor-pointer transition-colors duration-150'; row.dataset.id = p.id; row.innerHTML = ` <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">${p.id}</td> <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${p.productType}</td> <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${p.owner}</td> <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${p.approvedDate}</td> `; 
+        approved.forEach(p => { 
+            const status = calculateProposalStatus(p); 
+            const approvedCount = (p.approvedCommercialIds && p.approvedCommercialIds.length) || 0;
+            // Count only completed commercials (excluding rejected ones) that are not yet approved
+            const completedNonRejectedCommercials = (p.commercials && p.commercials.data) 
+                ? p.commercials.data.filter(c => c.status === 'Completed' && c.status !== 'Rejected').length 
+                : 0;
+            const pendingCount = completedNonRejectedCommercials - approvedCount;
+            
+            const row = document.createElement('tr'); 
+            row.className = 'hover:bg-indigo-100/50 cursor-pointer transition-colors duration-150'; 
+            row.dataset.id = p.id; 
+            row.innerHTML = ` <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">${p.id}</td> <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${p.productType}</td> <td class="px-6 py-4 text-sm text-slate-500 whitespace-normal max-w-xs truncate" title="${p.description || ''}">${p.description || ''}</td> <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${p.owner}</td> <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500 font-semibold text-green-600">${approvedCount}</td> <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500 font-semibold text-orange-600">${pendingCount}</td> <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${p.createdDate}</td> <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${p.createdBy}</td> <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${p.approvedBy || 'N/A'}</td> <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${p.approvedDate}</td> `; 
             row.addEventListener('click', () => { 
                 currentProposalId = p.id; 
                 renderProposalDetail(false, true); // isViewOnly=false, isFromApprovedTab=true
@@ -1589,9 +1889,22 @@
         });
     };
     const renderArchivedProposalsTable = () => {
-        const selectedFY = document.getElementById('filter-archived-fy').value;
-        const selectedType = document.getElementById('filter-archived-product-type').value;
-        const selectedStatus = document.getElementById('filter-archived-status').value;
+        const archFyEl = document.getElementById('filter-archived-fy');
+        const selectedArchivedFYs = archFyEl ? Array.from(archFyEl.selectedOptions).map(o => o.value).filter(v => v) : [];
+        const includeAllArchivedFy = selectedArchivedFYs.length === 0;
+        const getFyFromDateStr = (dateStr) => {
+            const d = parseDateForSorting(dateStr);
+            const y = d.getFullYear(); const m = d.getMonth();
+            return (m >= 3) ? `${y}-${y+1}` : `${y-1}-${y}`;
+        };
+        const colType = (document.getElementById('col-filter-arch-productType') && document.getElementById('col-filter-arch-productType').value) || '';
+        const colDesc = (document.getElementById('col-filter-arch-description') && document.getElementById('col-filter-arch-description').value.trim().toLowerCase()) || '';
+        const colStatus = (document.getElementById('col-filter-arch-status') && document.getElementById('col-filter-arch-status').value) || '';
+        const colOwner = (document.getElementById('col-filter-arch-owner') && document.getElementById('col-filter-arch-owner').value.trim().toLowerCase()) || '';
+        const colRejectedBy = (document.getElementById('col-filter-arch-rejectedBy') && document.getElementById('col-filter-arch-rejectedBy').value.trim().toLowerCase()) || '';
+        const colRejectedOn = (document.getElementById('col-filter-arch-rejectedOn') && document.getElementById('col-filter-arch-rejectedOn').value) || '';
+        const colCreatedOn = (document.getElementById('col-filter-arch-createdOn') && document.getElementById('col-filter-arch-createdOn').value) || '';
+        const colCreatedBy = (document.getElementById('col-filter-arch-createdBy') && document.getElementById('col-filter-arch-createdBy').value.trim().toLowerCase()) || '';
         const tbody = document.getElementById('archived-proposals-table-body');
         tbody.innerHTML = '';
         
@@ -1601,37 +1914,72 @@
             filteredProposals = filteredProposals.filter(p => p.owner === currentUser.name);
         }
 
-        if (selectedFY) {
-            const [startYear, endYear] = selectedFY.split('-').map(Number);
-            const startDate = new Date(startYear, 3, 1);
-            const endDate = new Date(endYear, 2, 31);
+        if (!includeAllArchivedFy) {
+            filteredProposals = filteredProposals.filter(p => selectedArchivedFYs.includes(getFyFromDateStr(p.createdDate)));
+        }
+
+        if (colType) {
+            filteredProposals = filteredProposals.filter(p => p.productType === colType);
+        }
+
+        if (colDesc) {
+            filteredProposals = filteredProposals.filter(p => ((p.description || '') + '').toLowerCase().includes(colDesc));
+        }
+
+        if (colStatus) {
+            if (colStatus === 'Rejected') filteredProposals = filteredProposals.filter(p => p.isRejected);
+            else if (colStatus === 'Withdrawn') filteredProposals = filteredProposals.filter(p => p.isWithdrawn);
+        }
+
+        if (colOwner) {
+            filteredProposals = filteredProposals.filter(p => ((p.owner || '') + '').toLowerCase().includes(colOwner));
+        }
+
+        if (colRejectedBy) {
             filteredProposals = filteredProposals.filter(p => {
-                const createdDate = parseDateForSorting(p.createdDate);
-                return createdDate >= startDate && createdDate <= endDate;
+                const rejectedBy = p.isRejected ? (p.rejectedBy || '') : (p.withdrawnBy || '');
+                return rejectedBy.toLowerCase().includes(colRejectedBy);
             });
         }
 
-        if (selectedType !== 'All') {
-            filteredProposals = filteredProposals.filter(p => p.productType === selectedType);
+        if (colRejectedOn) {
+            const filterDate = new Date(colRejectedOn);
+            filteredProposals = filteredProposals.filter(p => {
+                const rejectedDate = p.isRejected ? p.rejectedDate : p.withdrawnDate;
+                if (!rejectedDate) return false;
+                const d = parseDateForSorting(rejectedDate);
+                return d.getFullYear() === filterDate.getFullYear() && d.getMonth() === filterDate.getMonth() && d.getDate() === filterDate.getDate();
+            });
         }
 
-        if (selectedStatus !== 'All') {
-            if (selectedStatus === 'Rejected') {
-                filteredProposals = filteredProposals.filter(p => p.isRejected);
-            } else if (selectedStatus === 'Withdrawn') {
-                filteredProposals = filteredProposals.filter(p => p.isWithdrawn);
-            }
+        if (colCreatedOn) {
+            const filterDate = new Date(colCreatedOn);
+            filteredProposals = filteredProposals.filter(p => {
+                const d = parseDateForSorting(p.createdDate);
+                return d.getFullYear() === filterDate.getFullYear() && d.getMonth() === filterDate.getMonth() && d.getDate() === filterDate.getDate();
+            });
         }
 
-        filteredProposals.sort((a, b) => parseDateForSorting(b.createdDate) - parseDateForSorting(a.createdDate));
+        if (colCreatedBy) {
+            filteredProposals = filteredProposals.filter(p => ((p.createdBy || '') + '').toLowerCase().includes(colCreatedBy));
+        }
+
+        filteredProposals.sort((a, b) => {
+            const aDate = a.isRejected ? parseDateForSorting(a.rejectedDate) : parseDateForSorting(a.withdrawnDate);
+            const bDate = b.isRejected ? parseDateForSorting(b.rejectedDate) : parseDateForSorting(b.withdrawnDate);
+            return bDate - aDate;
+        });
         
         if(filteredProposals.length === 0) { 
-            tbody.innerHTML = `<tr><td colspan="7" class="text-center py-10 text-slate-500">No archived proposals match the current filters.</td></tr>`; 
+            tbody.innerHTML = `<tr><td colspan="9" class="text-center py-10 text-slate-500">No archived proposals match the current filters.</td></tr>`; 
             return; 
         }
         
         filteredProposals.forEach(p => { 
             const status = calculateProposalStatus(p);
+            const rejectedBy = p.isRejected ? (p.rejectedBy || 'N/A') : (p.withdrawnBy || 'N/A');
+            const rejectedOn = p.isRejected ? (p.rejectedDate || 'N/A') : (p.withdrawnDate || 'N/A');
+            
             const row = document.createElement('tr'); 
             row.className = 'hover:bg-indigo-100/50 cursor-pointer transition-colors duration-150'; 
             row.dataset.id = p.id; 
@@ -1643,6 +1991,8 @@
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${p.owner}</td> 
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${p.createdDate}</td> 
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${p.createdBy}</td> 
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${rejectedBy}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${rejectedOn}</td>
             `; 
             
             row.addEventListener('click', () => { 
@@ -1850,21 +2200,43 @@
     const renderSummaryTable = () => {
         document.getElementById('summary-title').textContent = isManagerView ? 'Employee Product Progress Summary' : 'Product Progress Summary';
 
-        const selectedFY = document.getElementById('summary-fy-filter').value;
-        const [startYear, endYear] = selectedFY.split('-').map(Number);
-        const startDate = new Date(startYear, 3, 1); // April 1st
-        const endDate = new Date(endYear, 2, 31); // March 31st
+        const summaryFyEl = document.getElementById('summary-fy-filter');
+        const selectedSummaryFYs = summaryFyEl ? Array.from(summaryFyEl.selectedOptions).map(o => o.value).filter(v => v) : [];
+        const includeAllSummaryFy = selectedSummaryFYs.length === 0;
+        const getFyFromDateStr = (dateStr) => { const d = parseDateForSorting(dateStr); const y = d.getFullYear(); const m = d.getMonth(); return (m >= 3) ? `${y}-${y+1}` : `${y-1}-${y}`; };
 
-        const filteredWipTasks = wipTasks.filter(task => {
-            const taskDate = parseDateForSorting(task.createdDate);
-            return taskDate >= startDate && taskDate <= endDate;
+        // --- MODIFICATION START ---
+        // 1. Read filter values. These inputs are static now.
+        const filterEmpId = (document.getElementById('col-filter-summary-empId') ? document.getElementById('col-filter-summary-empId').value.trim().toLowerCase() : '');
+        const filterEmpName = (document.getElementById('col-filter-summary-empName') ? document.getElementById('col-filter-summary-empName').value.trim().toLowerCase() : '');
+        // --- MODIFICATION END ---
+
+        const filteredWipTasks = includeAllSummaryFy ? wipTasks.slice() : wipTasks.filter(task => selectedSummaryFYs.includes(getFyFromDateStr(task.createdDate)));
+
+        let employeesToDisplay = isManagerView ? dummyEmployees : [currentUser];
+        
+        // Apply employee filters
+        employeesToDisplay = employeesToDisplay.filter(emp => {
+            if (filterEmpId && !(emp.id.toLowerCase().includes(filterEmpId))) return false;
+            if (filterEmpName && !(emp.name.toLowerCase().includes(filterEmpName))) return false;
+            return true;
         });
-
-        const employeesToDisplay = isManagerView ? dummyEmployees : [currentUser];
-        const thead = document.querySelector("#view-summary thead");
+        
+        // --- MODIFICATION START ---
+        // const thead = document.querySelector("#view-summary thead"); // No longer needed
         const tbody = document.getElementById('summary-table-body');
-        thead.innerHTML = '';
+        // thead.innerHTML = ''; // DO NOT DO THIS
         tbody.innerHTML = '';
+
+        // 1. Toggle expanded class on table
+        const table = document.getElementById('summary-table');
+        const wipExpandTh = document.getElementById('wip-expand-th');
+        if (isWipExpanded) {
+            table.classList.add('summary-table-expanded');
+        } else {
+            table.classList.remove('summary-table-expanded');
+        }
+        // --- MODIFICATION END ---
 
         if (isWipExpanded) {
             // --- EXPANDED VIEW ---
@@ -1881,18 +2253,9 @@
                 { key: 'grn', name: 'GRN Completed' }
             ];
             
-            const stageHeaders = stageColumns.map(col => `<th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">${col.name}</th>`).join('');
+            // const stageHeaders = ... // No longer needed
+            // thead.innerHTML = ... // DO NOT DO THIS
 
-            thead.innerHTML = `
-                <tr>
-                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Emp ID</th>
-                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Emp Name</th>
-                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">WIP <button type="button" id="wip-expand-btn" class="normal-case">&lt;&gt;</button></th>
-                    ${stageHeaders}
-                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Launched</th>
-                </tr>
-            `;
-            
             const summaryData = employeesToDisplay.map(emp => {
                 const data = { id: emp.id, name: emp.name, wip: 0, launched: 0 };
                 stageColumns.forEach(col => data[col.key] = 0);
@@ -1930,6 +2293,7 @@
             });
 
             if (summaryData.every(e => e.wip === 0 && e.launched === 0)) {
+                // --- MODIFICATION: Updated colspan ---
                 const totalCols = 4 + stageColumns.length;
                 tbody.innerHTML = `<tr><td colspan="${totalCols}" class="text-center py-10 text-slate-500">No data found for the selected year.</td></tr>`;
                 return;
@@ -1937,7 +2301,8 @@
 
             summaryData.forEach(emp => {
                 const row = document.createElement('tr');
-                const stageCells = stageColumns.map(col => `<td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500 text-center">${emp[col.key]}</td>`).join('');
+                // --- MODIFICATION: Added class="summary-stage-col" to stage cells ---
+                const stageCells = stageColumns.map(col => `<td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500 text-center summary-stage-col">${emp[col.key]}</td>`).join('');
                 row.innerHTML = `
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">${emp.id}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${emp.name}</td>
@@ -1964,19 +2329,17 @@
                 }
             });
             
+            // --- MODIFICATION START: Update expand button in static TH ---
             const totalWip = summaryData.reduce((acc, emp) => acc + emp.wip, 0);
             const expandButton = totalWip > 0 
                 ? `<button type="button" id="wip-expand-btn" class="normal-case">&lt;&gt;</button>` 
                 : `<span class="normal-case text-slate-400">&gt;&lt;</span>`;
+            if (wipExpandTh) {
+                wipExpandTh.innerHTML = `WIP ${expandButton}`;
+            }
+            // thead.innerHTML = ... // DO NOT DO THIS
+            // --- MODIFICATION END ---
 
-            thead.innerHTML = `
-                <tr>
-                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Emp ID</th>
-                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Emp Name</th>
-                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">WIP ${expandButton}</th>
-                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Launched</th>
-                </tr>
-            `;
 
             if (summaryData.every(e => e.wip === 0 && e.launched === 0)) {
                 tbody.innerHTML = `<tr><td colspan="4" class="text-center py-10 text-slate-500">No data found for the selected year.</td></tr>`;
@@ -1994,6 +2357,11 @@
                 tbody.appendChild(row);
             });
         }
+        
+        // --- MODIFICATION START ---
+        // REMOVED ALL LOGIC for re-attaching listeners and restoring values.
+        // It's no longer needed.
+        // --- MODIFICATION END ---
     };
 
     function openEditProductNameModal(taskId, contextView = 'approvedProposalDetail') {
@@ -2055,25 +2423,24 @@
         tbodyWithdrawn.innerHTML = '';
         
         // --- MODIFICATION START ---
-        const selectedFY = document.getElementById('filter-new-products-fy').value;
+        const newProdFyEl = document.getElementById('filter-new-products-fy');
+        const selectedNewProdFYs = newProdFyEl ? Array.from(newProdFyEl.selectedOptions).map(o => o.value).filter(v => v) : [];
+        const includeAllNewProdFy = selectedNewProdFYs.length === 0;
+        const getFyFromDateStr = (dateStr) => { const d = parseDateForSorting(dateStr); const y = d.getFullYear(); const m = d.getMonth(); return (m >= 3) ? `${y}-${y+1}` : `${y-1}-${y}`; };
 
         let baseFilteredTasks = isManagerView ? [...wipTasks] : wipTasks.filter(task => task.owner === currentUser.name);
 
-        if (selectedFY) {
-            const [startYear, endYear] = selectedFY.split('-').map(Number);
-            const startDate = new Date(startYear, 3, 1); // April 1st
-            const endDate = new Date(endYear, 2, 31); // March 31st
-            baseFilteredTasks = baseFilteredTasks.filter(task => {
-                 const taskDate = parseDateForSorting(task.createdDate);
-                 return taskDate >= startDate && taskDate <= endDate;
-            });
+        if (!includeAllNewProdFy) {
+            baseFilteredTasks = baseFilteredTasks.filter(task => selectedNewProdFYs.includes(getFyFromDateStr(task.createdDate)));
         }
-        
+
+        // Keep baseFilteredTasks as the universal set (filtered by FY and owner/view).
+        // Do not apply WIP column-level filters here so Launched/Withdrawn tabs are not affected.
         const filteredTasks = baseFilteredTasks; // Keep the name for consistency
         // --- MODIFICATION END ---
         
         // Create the row-building function to avoid repetition
-        const createProductRowHtml = (task) => {
+        const createProductRowHtml = (task, extraCols = false) => {
             const status = calculateWipStatus(task);
             const proposal = proposals.find(p => p.id === task.proposalId);
             const vendorId = proposal ? proposal.finalizedVendorId : null;
@@ -2093,18 +2460,37 @@
             //     </button>
             // `;
 
-            return `
+            let html = `
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">${productIdHtml}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900 flex items-center">
                     <span>${task.productName}</span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${proposalIdHtml}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${vendorNameHtml}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm"><span class="status-badge ${getStatusClass(status)}">${status}</span></td>
+                ${status!=='Launched' && status!=='Withdrawn' ?
+                `<td class="px-6 py-4 whitespace-nowrap text-sm"><span class="status-badge ${getStatusClass(status)}">${status}</span></td>`:''}
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${task.owner}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${task.createdDate}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${task.createdBy}</td>
             `;
+
+            if (extraCols === 'launched') {
+                const launchedOn = task.launchedOn || '';
+                const launchedBy = task.launchedBy || '';
+                html += `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${launchedOn}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${launchedBy}</td>
+                `;
+            } else if (extraCols === 'withdrawn') {
+                const withdrawnOn = task.withdrawnOn || '';
+                const withdrawnBy = task.withdrawnBy || '';
+                html += `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${withdrawnOn}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${withdrawnBy}</td>
+                `;
+            }
+
+            return html;
         };
 
         const attachRowClickListener = (row, task) => {
@@ -2116,9 +2502,9 @@
         };
 
         // ADDED: Split tasks into three lists
-        const wipTasksList = [];
-        const launchedTasksList = [];
-        const withdrawnTasksList = [];
+        let wipTasksList = [];
+        let launchedTasksList = [];
+        let withdrawnTasksList = [];
 
         filteredTasks.forEach(task => {
             const status = calculateWipStatus(task);
@@ -2132,10 +2518,97 @@
             }
         });
 
+        // --- WIP-specific column filters (apply only to WIP tab) ---
+        const fProductName = document.getElementById('col-filter-wip-productName') ? document.getElementById('col-filter-wip-productName').value.trim().toLowerCase() : '';
+        const fVendorName = document.getElementById('col-filter-wip-vendorName') ? document.getElementById('col-filter-wip-vendorName').value.trim().toLowerCase() : '';
+        const fStatus = document.getElementById('col-filter-wip-status') ? document.getElementById('col-filter-wip-status').value : '';
+        const fOwner = document.getElementById('col-filter-wip-owner') ? document.getElementById('col-filter-wip-owner').value.trim().toLowerCase() : '';
+        const fCreatedOn = document.getElementById('col-filter-wip-createdOn') ? document.getElementById('col-filter-wip-createdOn').value : '';
+        const fCreatedBy = document.getElementById('col-filter-wip-createdBy') ? document.getElementById('col-filter-wip-createdBy').value.trim().toLowerCase() : '';
+
+        const formatDateInputToDDMMYYYY = (isoDate) => {
+            if (!isoDate) return '';
+            const parts = isoDate.split('-'); // yyyy-mm-dd
+            if (parts.length !== 3) return '';
+            return `${parts[2]}-${parts[1]}-${parts[0]}`;
+        };
+
+        const fCreatedOnFormatted = formatDateInputToDDMMYYYY(fCreatedOn);
+
+        if (fProductName || fVendorName || fStatus || fOwner || fCreatedOnFormatted || fCreatedBy) {
+            wipTasksList = wipTasksList.filter(task => {
+                if (fProductName && !((task.productName || '').toLowerCase().includes(fProductName))) return false;
+                if (fVendorName && !((task.vendorName || '').toLowerCase().includes(fVendorName))) return false;
+                const status = calculateWipStatus(task);
+                if (fStatus && fStatus !== '') {
+                    // When the WIP filter is 'WIP' we also want to include 'Project Approved' tasks
+                    if (fStatus === 'WIP') {
+                        if (!(status === 'WIP' || status === 'Project Approved')) return false;
+                    } else {
+                        if (status !== fStatus) return false;
+                    }
+                }
+                if (fOwner && !((task.owner || '').toLowerCase().includes(fOwner))) return false;
+                if (fCreatedOnFormatted && (parseDateForSorting(task.createdDate).getTime() !== parseDateForSorting(fCreatedOnFormatted).getTime())) return false;
+                if (fCreatedBy && !((task.createdBy || '').toLowerCase().includes(fCreatedBy))) return false;
+                return true;
+            });
+        }
+
         // Sort each list
         wipTasksList.sort((a, b) => parseDateForSorting(b.createdDate) - parseDateForSorting(a.createdDate));
         launchedTasksList.sort((a, b) => parseDateForSorting(b.createdDate) - parseDateForSorting(a.createdDate));
         withdrawnTasksList.sort((a, b) => parseDateForSorting(b.createdDate) - parseDateForSorting(a.createdDate));
+
+        // --- Launched-specific column filters (per-tab filters) ---
+        const fLProductName = document.getElementById('col-filter-launched-productName') ? document.getElementById('col-filter-launched-productName').value.trim().toLowerCase() : '';
+        const fLVendorName = document.getElementById('col-filter-launched-vendorName') ? document.getElementById('col-filter-launched-vendorName').value.trim().toLowerCase() : '';
+
+        const fLOwner = document.getElementById('col-filter-launched-owner') ? document.getElementById('col-filter-launched-owner').value.trim().toLowerCase() : '';
+        const fLCreatedOn = document.getElementById('col-filter-launched-createdOn') ? document.getElementById('col-filter-launched-createdOn').value : '';
+        const fLCreatedBy = document.getElementById('col-filter-launched-createdBy') ? document.getElementById('col-filter-launched-createdBy').value.trim().toLowerCase() : '';
+        const fLLaunchedOn = document.getElementById('col-filter-launched-launchedOn') ? (function(iso){ if(!iso) return ''; const parts=iso.split('-'); if(parts.length!==3) return ''; return `${parts[2]}-${parts[1]}-${parts[0]}`; })(document.getElementById('col-filter-launched-launchedOn').value) : '';
+        const fLLaunchedBy = document.getElementById('col-filter-launched-launchedBy') ? document.getElementById('col-filter-launched-launchedBy').value.trim().toLowerCase() : '';
+
+        const fLCreatedOnFormatted = (function(iso){ if(!iso) return ''; const parts=iso.split('-'); if(parts.length!==3) return ''; return `${parts[2]}-${parts[1]}-${parts[0]}`; })(fLCreatedOn);
+
+        if (fLProductName || fLVendorName || fLOwner || fLCreatedOnFormatted || fLCreatedBy || fLLaunchedOn || fLLaunchedBy) {
+            launchedTasksList = launchedTasksList.filter(task => {
+                if (fLProductName && !((task.productName || '').toLowerCase().includes(fLProductName))) return false;
+                if (fLVendorName && !((task.vendorName || '').toLowerCase().includes(fLVendorName))) return false;
+                if (fLOwner && !((task.owner || '').toLowerCase().includes(fLOwner))) return false;
+                if (fLCreatedOnFormatted && (parseDateForSorting(task.createdDate).getTime() !== parseDateForSorting(fLCreatedOnFormatted).getTime())) return false;
+                if (fLCreatedBy && !((task.createdBy || '').toLowerCase().includes(fLCreatedBy))) return false;
+                if (fLLaunchedOn && (parseDateForSorting(task.launchedOn).getTime() !== parseDateForSorting(fLLaunchedOn).getTime())) return false;
+                if (fLLaunchedBy && !((task.launchedBy || '').toLowerCase().includes(fLLaunchedBy))) return false;
+                return true;
+            });
+        }
+
+        // --- Withdrawn-specific column filters (per-tab filters) ---
+        const fWProductName = document.getElementById('col-filter-withdrawn-productName') ? document.getElementById('col-filter-withdrawn-productName').value.trim().toLowerCase() : '';
+        const fWVendorName = document.getElementById('col-filter-withdrawn-vendorName') ? document.getElementById('col-filter-withdrawn-vendorName').value.trim().toLowerCase() : '';
+
+        const fWOwner = document.getElementById('col-filter-withdrawn-owner') ? document.getElementById('col-filter-withdrawn-owner').value.trim().toLowerCase() : '';
+        const fWCreatedOn = document.getElementById('col-filter-withdrawn-createdOn') ? document.getElementById('col-filter-withdrawn-createdOn').value : '';
+        const fWCreatedBy = document.getElementById('col-filter-withdrawn-createdBy') ? document.getElementById('col-filter-withdrawn-createdBy').value.trim().toLowerCase() : '';
+        const fWWithdrawnOn = document.getElementById('col-filter-withdrawn-withdrawnOn') ? (function(iso){ if(!iso) return ''; const parts=iso.split('-'); if(parts.length!==3) return ''; return `${parts[2]}-${parts[1]}-${parts[0]}`; })(document.getElementById('col-filter-withdrawn-withdrawnOn').value) : '';
+        const fWWithdrawnBy = document.getElementById('col-filter-withdrawn-withdrawnBy') ? document.getElementById('col-filter-withdrawn-withdrawnBy').value.trim().toLowerCase() : '';
+
+        const fWCreatedOnFormatted = (function(iso){ if(!iso) return ''; const parts=iso.split('-'); if(parts.length!==3) return ''; return `${parts[2]}-${parts[1]}-${parts[0]}`; })(fWCreatedOn);
+
+        if (fWProductName || fWVendorName || fWOwner || fWCreatedOnFormatted || fWCreatedBy || fWWithdrawnOn || fWWithdrawnBy) {
+            withdrawnTasksList = withdrawnTasksList.filter(task => {
+                if (fWProductName && !((task.productName || '').toLowerCase().includes(fWProductName))) return false;
+                if (fWVendorName && !((task.vendorName || '').toLowerCase().includes(fWVendorName))) return false;
+                if (fWOwner && !((task.owner || '').toLowerCase().includes(fWOwner))) return false;
+                if (fWCreatedOnFormatted && (parseDateForSorting(task.createdDate).getTime() !== parseDateForSorting(fWCreatedOnFormatted).getTime())) return false;
+                if (fWCreatedBy && !((task.createdBy || '').toLowerCase().includes(fWCreatedBy))) return false;
+                if (fWWithdrawnOn && (parseDateForSorting(task.withdrawnOn).getTime() !== parseDateForSorting(fWWithdrawnOn).getTime())) return false;
+                if (fWWithdrawnBy && !((task.withdrawnBy || '').toLowerCase().includes(fWWithdrawnBy))) return false;
+                return true;
+            });
+        }
 
         // Populate WIP table
         if (wipTasksList.length === 0) {
@@ -2144,7 +2617,7 @@
             wipTasksList.forEach(task => {
                 const row = document.createElement('tr');
                 row.className = 'hover:bg-indigo-100/50 cursor-pointer transition-colors duration-150';
-                row.innerHTML = createProductRowHtml(task);
+                row.innerHTML = createProductRowHtml(task, false);
                 attachRowClickListener(row, task);
                 tbodyWip.appendChild(row);
             });
@@ -2152,12 +2625,12 @@
 
         // Populate Launched table
         if (launchedTasksList.length === 0) {
-            tbodyLaunched.innerHTML = `<tr><td colspan="8" class="text-center py-10 text-slate-500">No launched products found.</td></tr>`;
+            tbodyLaunched.innerHTML = `<tr><td colspan="10" class="text-center py-10 text-slate-500">No launched products found.</td></tr>`;
         } else {
             launchedTasksList.forEach(task => {
                 const row = document.createElement('tr');
                 row.className = 'hover:bg-indigo-100/50 cursor-pointer transition-colors duration-150';
-                row.innerHTML = createProductRowHtml(task);
+                row.innerHTML = createProductRowHtml(task, 'launched');
                 attachRowClickListener(row, task);
                 tbodyLaunched.appendChild(row);
             });
@@ -2170,7 +2643,7 @@
             withdrawnTasksList.forEach(task => {
                 const row = document.createElement('tr');
                 row.className = 'hover:bg-indigo-100/50 cursor-pointer transition-colors duration-150';
-                row.innerHTML = createProductRowHtml(task);
+                row.innerHTML = createProductRowHtml(task, 'withdrawn');
                 attachRowClickListener(row, task);
                 tbodyWithdrawn.appendChild(row);
             });
@@ -2718,8 +3191,7 @@
                 { id: 'productId', label: 'Product ID', type: 'text', required: true },
                 { id: 'deliveryDate', label: 'PO Date', type: 'date', required: true }, // <-- MODIFICATION: Label changed
                 { id: 'tentativeLaunchDate', label: 'Tentative Launch Date', type: 'date', readonly: true, required: true },
-                { id: 'unitsOrdered', label: 'Number of units ordered', type: 'number', required: true },
-                { id: 'upload', label: 'Upload PO', type: 'file' },
+                { id: 'unitsOrdered', label: 'Number of units ordered', type: 'number', required: true }
             ]
         },
         productionStarted: { title: 'Production Started' },
@@ -2729,7 +3201,7 @@
             title: 'GRN Details',
             fields: [
                 { id: 'optivalGrnId', label: 'Optival GRN Id', type: 'text' },
-                { id: 'grnDate', label: 'GRN Date', type: 'date' },
+                { id: 'grnDate', label: 'GRN Date', type: 'date' }
             ]
         }
     };
@@ -3485,7 +3957,7 @@
                     { id: 'locationContainer', type: 'placeholder', required: true},
                     { id: 'categoryCompositionExpertise', label: 'Category / Composition Expertise', type: 'textarea', span: 2 },
                     { id: 'keyPartnersBrands', label: 'Key Partners/Brands', type: 'textarea', span: 2 },
-                    { id: 'gstNo', label: 'GST No.', type: 'text' },
+                    { id: 'gstNo', label: 'GST No.', type: 'text', required: true },
                     { id: 'plantVisit', label: 'Plant Visit Date', type: 'date' },
                     { id: 'remarks', label: 'Remarks', type: 'textarea', span: 2 },
                 ]
@@ -3552,11 +4024,12 @@
                         <div class="mt-1 p-4 border border-slate-200 rounded-lg grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label for="advancePercentage" class="block text-sm font-medium text-slate-700">Advance %</label>
-                                <input type="number" id="advancePercentage" value="${(entryData && entryData.advancePercentage) || '0'}" class="mt-1 block w-full border-slate-300 rounded-lg shadow-sm">
+                                <input type="number" id="advancePercentage" value="${(entryData && entryData.advancePercentage)}" min="0" max="100" step="1" class="mt-1 block w-full border-slate-300 rounded-lg shadow-sm">
                             </div>
-                            <div>
-                                <label for="balancePaymentType" class="block text-sm font-medium text-slate-700">Balance Payment</label>
+                            <div id="balancePaymentContainer">
+                                <label for="balancePaymentType" class="block text-sm font-medium text-slate-700">Balance Payment <span class="text-red-500">*</span></label>
                                 <select id="balancePaymentType" class="mt-1 block w-full border-slate-300 rounded-lg shadow-sm">
+                                    <option value="" ${(!entryData || !entryData.balancePaymentType) ? 'selected' : ''}>Select</option>
                                     <option value="Before Dispatch" ${entryData && entryData.balancePaymentType === 'Before Dispatch' ? 'selected' : ''}>Before Dispatch</option>
                                     <option value="After Dispatch" ${entryData && entryData.balancePaymentType === 'After Dispatch' ? 'selected' : ''}>After Dispatch</option>
                                 </select>
@@ -3649,6 +4122,54 @@
             const sampleSelect = form.querySelector('#sampleId');
             const balancePaymentSelect = form.querySelector('#balancePaymentType');
             const creditDaysContainer = form.querySelector('#creditDaysContainer');
+
+            // Advance % and Balance Payment visibility/requirement handling
+            const advanceInput = form.querySelector('#advancePercentage');
+            const balanceContainer = form.querySelector('#balancePaymentContainer');
+            const balanceSelect = balancePaymentSelect; // alias
+
+            const updateBalanceVisibility = () => {
+                if (!advanceInput || !balanceContainer || !balanceSelect) return;
+                let raw = advanceInput.value;
+                // If empty, treat as hidden (user requested behavior)
+                if (raw === null || raw === undefined || raw === '') {
+                    balanceContainer.classList.add('hidden');
+                    balanceSelect.removeAttribute('required');
+                    balanceSelect.value = '';
+                    if (creditDaysContainer) creditDaysContainer.innerHTML = '';
+                    return;
+                }
+                // Clamp numeric input to [0,100]
+                const parsed = parseFloat(raw);
+                let val = isNaN(parsed) ? NaN : parsed;
+                if (!isNaN(val)) {
+                    if (val < 0) {
+                        val = 0;
+                        advanceInput.value = '0';
+                    } else if (val > 100) {
+                        val = 100;
+                        advanceInput.value = '100';
+                    }
+                } else {
+                    // If not a number (shouldn't happen for number input), treat as 0
+                    val = 0;
+                }
+                if (val < 100) {
+                    balanceContainer.classList.remove('hidden');
+                    balanceSelect.setAttribute('required', '');
+                } else {
+                    balanceContainer.classList.add('hidden');
+                    balanceSelect.removeAttribute('required');
+                    balanceSelect.value = '';
+                    if (creditDaysContainer) creditDaysContainer.innerHTML = '';
+                }
+            };
+
+            if (advanceInput) {
+                advanceInput.addEventListener('input', updateBalanceVisibility);
+                // initialize visibility based on current value (covers add & edit flows)
+                updateBalanceVisibility();
+            }
             
             // Fields for calculation
             const productCostInput = form.querySelector('#productCost');
@@ -4056,6 +4577,17 @@
                 isValid = false; // <-- ADDED
             } // <-- ADDED
 
+            // If balance payment field is visible, it must have a selected value
+            const balanceContainerCheck = form.querySelector('#balancePaymentContainer');
+            const balanceSelectCheck = form.querySelector('#balancePaymentType');
+            if (balanceContainerCheck && !balanceContainerCheck.classList.contains('hidden')) {
+                if (!balanceSelectCheck || !balanceSelectCheck.value) {
+                    if (balanceSelectCheck) balanceSelectCheck.classList.add('border-red-500');
+                    if (!firstInvalidField) firstInvalidField = balanceSelectCheck || null;
+                    isValid = false;
+                }
+            }
+
             if (!isValid) {
                 errorContainer.textContent = `Please fill all mandatory fields marked with an asterisk (*).`;
                 errorContainer.classList.remove('hidden');
@@ -4138,6 +4670,9 @@
                 const country = form.querySelector('#vendorCountry');
                 if (!country.value.trim()) highlightError(country);
             }
+
+            const gstNo = form.querySelector('#gstNo');
+            if (!gstNo.value.trim()) highlightError(gstNo);
 
             // --- MODIFICATION START: Replace POC validation logic ---
             const pocEntries = form.querySelectorAll('.poc-entry');
@@ -4670,6 +5205,7 @@
 
         p.isApproved = true;
         p.approvedDate = formatDateToDDMMYYYY(new Date().toISOString().split('T')[0]);
+        p.approvedBy = isManagerView ? 'Manager' : currentUser.name;
         
         // --- MODIFICATION START ---
         // Set the finalized vendor to the one from the first selected commercial
@@ -4693,11 +5229,8 @@
         document.getElementById('final-approval-modal').classList.add('hidden');
         renderProposalsTable();
         renderApprovedProposalsTable();
-        
-        // --- MODIFICATION START: Also switch to the approved tab ---
-        showView('proposals');
-        document.getElementById('inner-tab-approved').click(); // <-- This will switch the inner tab
-        // --- MODIFICATION END ---
+        // Re-render the current proposal detail and remain on the same page (do not redirect)
+        renderProposalDetail();
     }
     
     function handleRejectProposal() {
@@ -4709,8 +5242,11 @@
         document.getElementById('confirmation-modal-confirm-btn').className = 'bg-red-600 text-white font-semibold py-2 px-6 rounded-lg shadow-sm hover:bg-red-700 transition';
         confirmationAction = () => {
             p.isRejected = true;
+            p.rejectedDate = formatDateToDDMMYYYY(new Date().toISOString().split('T')[0]);
+            p.rejectedBy = isManagerView ? 'Manager' : currentUser.name;
             renderProposalDetail();
             renderProposalsTable();
+            renderArchivedProposalsTable();
         };
         modal.classList.remove('hidden');
     }
@@ -4724,8 +5260,11 @@
         document.getElementById('confirmation-modal-confirm-btn').className = 'bg-yellow-500 text-white font-semibold py-2 px-6 rounded-lg shadow-sm hover:bg-yellow-600 transition';
         confirmationAction = () => {
             p.isWithdrawn = true;
+            p.withdrawnDate = formatDateToDDMMYYYY(new Date().toISOString().split('T')[0]);
+            p.withdrawnBy = isManagerView ? 'Manager' : currentUser.name;
             renderProposalDetail();
             renderProposalsTable();
+            renderArchivedProposalsTable();
         };
         modal.classList.remove('hidden');
     }
@@ -4819,7 +5358,102 @@
     }
     // --- MODIFICATION END ---
 
-    function handleSaveEntryStatus(entryId, status) { const p = proposals.find(prop => prop.id === currentProposalId); if (!p) return; const entry = p[currentStage].data.find(e => e.id === entryId); if (entry) { entry.status = status; renderStageDetail(); } }
+    function handleSaveEntryStatus(entryId, status) {
+        const p = proposals.find(prop => prop.id === currentProposalId);
+        if (!p) return;
+        const entry = p[currentStage].data.find(e => e.id === entryId);
+        if (!entry) return;
+
+        // --- NEW VALIDATION LOGIC ---
+        if (currentStage === 'vendorIdentification' && status === 'Completed') {
+            const expertise = entry.categoryCompositionExpertise;
+            const partners = entry.keyPartnersBrands;
+
+            if (!expertise || expertise.trim() === '' || !partners || partners.trim() === '') {
+                // Fields are missing.
+                
+                // 1. Open the modal with existing details
+                currentEntryId = entryId; // Set the currentEntryId for the modal
+                openStageEntryModal(entry); // This function will pre-fill the form
+
+                // 2. Show an error message inside the modal
+                const errorContainer = document.getElementById('stage-entry-error-message');
+                if (errorContainer) {
+                    errorContainer.textContent = 'To mark as "Completed", please fill in "Category / Composition Expertise" and "Key Partners/Brands".';
+                    errorContainer.classList.remove('hidden');
+                    
+                    // Highlight the specific fields in the modal
+                    const form = document.getElementById('stage-entry-form');
+                    const expertiseInput = form.querySelector('#categoryCompositionExpertise');
+                    const partnersInput = form.querySelector('#keyPartnersBrands');
+                    let focused = false;
+                    
+                    if (expertiseInput && (!expertise || expertise.trim() === '')) {
+                        expertiseInput.classList.add('border-red-500');
+                        expertiseInput.focus();
+                        focused = true;
+                    }
+                    if (partnersInput && (!partners || partners.trim() === '')) {
+                        partnersInput.classList.add('border-red-500');
+                        if (!focused) {
+                           partnersInput.focus();
+                        }
+                    }
+                }
+                return; // Stop the function from marking as completed
+            }
+        }
+        // If trying to mark a sample as Completed, ensure testedOn and avgRating are present
+        if (currentStage === 'sample' && status === 'Completed') {
+            const testedOn = entry.testedOn;
+            const avgRating = entry.avgRating;
+            const testedOnMissing = !testedOn && testedOn !== 0; // undefined or empty
+            const avgRatingMissing = (avgRating === undefined || avgRating === null || avgRating === '');
+
+            // treated as missing if empty or zero (zero people tested isn't meaningful for completion)
+            const testedOnInvalid = testedOnMissing || parseInt(testedOn) <= 0;
+
+            if (testedOnInvalid || avgRatingMissing) {
+                // Open the modal to let user fill/edit these fields
+                currentEntryId = entryId;
+                openStageEntryModal(entry);
+
+                const errorContainer = document.getElementById('stage-entry-error-message');
+                if (errorContainer) {
+                    errorContainer.textContent = 'To mark as "Completed", please provide "No. of People Tested On" and "Avg. Rating (Out of 5)".';
+                    errorContainer.classList.remove('hidden');
+
+                    // Auto-hide error message after 5 seconds
+                    setTimeout(() => {
+                        if (errorContainer && !errorContainer.classList.contains('hidden')) {
+                            errorContainer.classList.add('hidden');
+                            errorContainer.textContent = '';
+                        }
+                    }, 5000);
+
+                    // Highlight missing fields
+                    const form = document.getElementById('stage-entry-form');
+                    const testedOnInput = form ? form.querySelector('#testedOn') : null;
+                    const avgRatingInput = form ? form.querySelector('#avgRating') : null;
+                    let focused = false;
+                    if (testedOnInput && (testedOnInvalid)) {
+                        testedOnInput.classList.add('border-red-500');
+                        if (!focused) { testedOnInput.focus(); focused = true; }
+                    }
+                    if (avgRatingInput && (avgRatingMissing)) {
+                        avgRatingInput.classList.add('border-red-500');
+                        if (!focused) { avgRatingInput.focus(); focused = true; }
+                    }
+                }
+                return; // prevent marking as completed
+            }
+        }
+        // --- END NEW VALIDATION LOGIC ---
+
+        // If validation passes (or doesn't apply), proceed as normal
+        entry.status = status;
+        renderStageDetail();
+    }
     function handleSaveProduct(e) {
         e.preventDefault();
         const proposal = proposals.find(p => p.id === currentProposalId);
@@ -5116,6 +5750,14 @@
             
             confirmationAction = () => { 
                 task.isCancelled = true; 
+                // Mark withdrawn and persist metadata at withdrawal time (only once)
+                task.isWithdrawn = true;
+                if (!task.withdrawnOn) {
+                    task.withdrawnOn = formatDateToDDMMYYYY(new Date().toISOString().split('T')[0]);
+                }
+                if (!task.withdrawnBy) {
+                    task.withdrawnBy = isManagerView ? 'Manager' : (currentUser && currentUser.name ? currentUser.name : '');
+                }
                 
                 // Re-render all lists that might be affected
                 // --- MODIFICATION START ---
@@ -5383,12 +6025,13 @@
         const bulkTransferBtn = document.getElementById('btn-transfer-wip-owner-bulk');
         if (bulkTransferBtn) {
             bulkTransferBtn.addEventListener('click', openBulkProductTransferModal);
-        }
+        } // <-- ADDED THIS CLOSING BRACE
+        // --- MODIFICATION START: Target the static thead element ---
+        document.querySelector('#view-summary thead').addEventListener('click', (e) => {
+            // Find the button, whether it's the target or a parent
+            const button = e.target.closest('#wip-expand-btn');
+            if (button) {
         // --- MODIFICATION END ---
-
-        // Event delegation for the expand/collapse button in the summary table
-        document.querySelector('#view-summary table').addEventListener('click', (e) => {
-            if (e.target && e.target.id === 'wip-expand-btn') {
                 e.preventDefault();
                 isWipExpanded = !isWipExpanded;
                 renderSummaryTable();
@@ -5467,6 +6110,84 @@
         }
         // --- END Inner Tab Listeners ---
 
+        // --- Column filter listeners for Current Proposals ---
+        const colFilterIds = ['col-filter-productType','col-filter-description','col-filter-status','col-filter-owner','col-filter-createdOn','col-filter-createdBy','filter-proposal-fy'];
+        colFilterIds.forEach(id => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const ev = (el.tagName.toLowerCase() === 'select' || el.type === 'date') ? 'change' : 'input';
+            el.addEventListener(ev, () => renderProposalsTable());
+        });
+
+        // --- Column filter listeners for Approved Proposals ---
+        const approvedFilterIds = ['col-filter-approved-productType','col-filter-approved-description','col-filter-approved-owner','col-filter-approved-approvedBy','col-filter-approved-approvedOn','col-filter-approved-createdOn','col-filter-approved-createdBy','filter-approved-fy'];
+        approvedFilterIds.forEach(id => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const ev = (el.tagName.toLowerCase() === 'select' || el.type === 'date') ? 'change' : 'input';
+            el.addEventListener(ev, () => renderApprovedProposalsTable());
+        });
+
+        // --- Column filter listeners for Archived Proposals ---
+        const archivedFilterIds = ['col-filter-arch-productType','col-filter-arch-description','col-filter-arch-status','col-filter-arch-owner','col-filter-arch-rejectedBy','col-filter-arch-rejectedOn','col-filter-arch-createdOn','col-filter-arch-createdBy','filter-archived-fy'];
+        archivedFilterIds.forEach(id => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const ev = (el.tagName.toLowerCase() === 'select' || el.type === 'date') ? 'change' : 'input';
+            el.addEventListener(ev, () => renderArchivedProposalsTable());
+        });
+
+        // --- Clear Filters helpers ---
+        const getCurrentFy = () => {
+            const today = new Date();
+            const month = today.getMonth();
+            const year = today.getFullYear();
+            const startYear = month >= 3 ? year : year - 1;
+            return `${startYear}-${startYear + 1}`;
+        };
+
+        function clearCurrentFilters() {
+            const ids = ['col-filter-productType','col-filter-description','col-filter-status','col-filter-owner','col-filter-createdOn','col-filter-createdBy'];
+            ids.forEach(id => { const el = document.getElementById(id); if (!el) return; el.value = ''; if (el.tagName.toLowerCase() === 'input') el.dispatchEvent(new Event('input')); else el.dispatchEvent(new Event('change')); });
+            const fyEl = document.getElementById('filter-proposal-fy'); if (fyEl) { Array.from(fyEl.options).forEach(opt => opt.selected = (opt.value === getCurrentFy())); fyEl.dispatchEvent(new Event('change')); }
+            renderProposalsTable();
+        }
+
+        function clearApprovedFilters() {
+            const ids = ['col-filter-approved-productType','col-filter-approved-description','col-filter-approved-owner','col-filter-approved-approvedBy','col-filter-approved-approvedOn','col-filter-approved-createdOn','col-filter-approved-createdBy'];
+            ids.forEach(id => { const el = document.getElementById(id); if (!el) return; el.value = ''; if (el.tagName.toLowerCase() === 'input') el.dispatchEvent(new Event('input')); else el.dispatchEvent(new Event('change')); });
+            const fyEl = document.getElementById('filter-approved-fy'); if (fyEl) { Array.from(fyEl.options).forEach(opt => opt.selected = (opt.value === getCurrentFy())); fyEl.dispatchEvent(new Event('change')); }
+            renderApprovedProposalsTable();
+        }
+
+        function clearArchivedFilters() {
+            const ids = ['col-filter-arch-productType','col-filter-arch-description','col-filter-arch-status','col-filter-arch-owner','col-filter-arch-rejectedBy','col-filter-arch-rejectedOn','col-filter-arch-createdOn','col-filter-arch-createdBy'];
+            ids.forEach(id => { const el = document.getElementById(id); if (!el) return; el.value = ''; if (el.tagName.toLowerCase() === 'input') el.dispatchEvent(new Event('input')); else el.dispatchEvent(new Event('change')); });
+            const fyEl = document.getElementById('filter-archived-fy'); if (fyEl) { Array.from(fyEl.options).forEach(opt => opt.selected = (opt.value === getCurrentFy())); fyEl.dispatchEvent(new Event('change')); }
+            renderArchivedProposalsTable();
+        }
+
+        function clearNewProductsFilters() {
+            const ids = ['col-filter-wip-productName','col-filter-wip-vendorName','col-filter-wip-status','col-filter-wip-owner','col-filter-wip-createdOn','col-filter-wip-createdBy','col-filter-launched-productName','col-filter-launched-vendorName','col-filter-launched-owner','col-filter-launched-createdOn','col-filter-launched-createdBy','col-filter-launched-launchedOn','col-filter-launched-launchedBy','col-filter-withdrawn-productName','col-filter-withdrawn-vendorName','col-filter-withdrawn-owner','col-filter-withdrawn-createdOn','col-filter-withdrawn-createdBy','col-filter-withdrawn-withdrawnOn','col-filter-withdrawn-withdrawnBy'];
+            ids.forEach(id => { const el = document.getElementById(id); if (!el) return; 
+                if (el.tagName.toLowerCase() === 'input' || el.tagName.toLowerCase() === 'select') {
+                    if (el.type === 'date') el.value = '';
+                    else el.value = '';
+                } else { el.value = ''; }
+                const ev = (el.tagName.toLowerCase() === 'select' || el.type === 'date') ? 'change' : 'input';
+                el.dispatchEvent(new Event(ev));
+            });
+            const fyEl = document.getElementById('filter-new-products-fy'); if (fyEl) { Array.from(fyEl.options).forEach(opt => opt.selected = (opt.value === getCurrentFy())); fyEl.dispatchEvent(new Event('change')); }
+            renderNewProductsList();
+        }
+
+        // Wire clear buttons (if present)
+        const clearCurrBtn = document.getElementById('clear-filters-current'); if (clearCurrBtn) clearCurrBtn.addEventListener('click', clearCurrentFilters);
+        const clearApprBtn = document.getElementById('clear-filters-approved'); if (clearApprBtn) clearApprBtn.addEventListener('click', clearApprovedFilters);
+        const clearArchBtn = document.getElementById('clear-filters-archived'); if (clearArchBtn) clearArchBtn.addEventListener('click', clearArchivedFilters);
+        const clearNewBtn = document.getElementById('clear-filters-new-products'); if (clearNewBtn) clearNewBtn.addEventListener('click', clearNewProductsFilters);
+
+
         // --- ADDED: Inner Tab Listeners for New Products List ---
         const innerTabWip = document.getElementById('inner-tab-wip');
         const innerTabLaunched = document.getElementById('inner-tab-launched');
@@ -5503,6 +6224,16 @@
             });
         }
         // --- END: Inner Tab Listeners for New Products List ---
+
+        // --- Column filter listeners for New Products (WIP / Launched / Withdrawn) ---
+        const newProductsFilterIds = ['col-filter-wip-productName','col-filter-wip-vendorName','col-filter-wip-status','col-filter-wip-owner','col-filter-wip-createdOn','col-filter-wip-createdBy','col-filter-launched-productName','col-filter-launched-vendorName','col-filter-launched-owner','col-filter-launched-createdOn','col-filter-launched-createdBy','col-filter-launched-launchedOn','col-filter-launched-launchedBy','col-filter-withdrawn-productName','col-filter-withdrawn-vendorName','col-filter-withdrawn-owner','col-filter-withdrawn-createdOn','col-filter-withdrawn-createdBy','col-filter-withdrawn-withdrawnOn','col-filter-withdrawn-withdrawnBy','filter-new-products-fy'];
+        newProductsFilterIds.forEach(id => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const ev = (el.tagName.toLowerCase() === 'select' || el.type === 'date') ? 'change' : 'input';
+            el.addEventListener(ev, () => renderNewProductsList());
+        });
+
 
 
         const newOwnerSearch = document.getElementById('newOwnerSearch');
@@ -5827,18 +6558,64 @@
         document.getElementById('proposal-form').addEventListener('submit', handleProposalFormSubmit);
         document.getElementById('edit-product-name-form').addEventListener('submit', handleSaveProductName);
         
-        document.getElementById('filter-product-type').addEventListener('change', renderProposalsTable);
-        document.getElementById('filter-status').addEventListener('change', renderProposalsTable);
-        document.getElementById('summary-fy-filter').addEventListener('change', renderSummaryTable);
-        document.getElementById('filter-proposal-fy').addEventListener('change', renderProposalsTable);
-        document.getElementById('filter-approved-fy').addEventListener('change', renderApprovedProposalsTable);
-        document.getElementById('filter-approved-product-type').addEventListener('change', renderApprovedProposalsTable);
-        document.getElementById('filter-archived-fy').addEventListener('change', renderArchivedProposalsTable);
-        document.getElementById('filter-archived-product-type').addEventListener('change', renderArchivedProposalsTable);
-        document.getElementById('filter-archived-status').addEventListener('change', renderArchivedProposalsTable);
+        // Old product-type/status filters removed; column filters in table header replace them.
+        // Guard all event listener attachments in case some top-level filters were removed.
+        const summaryFyEl = document.getElementById('summary-fy-filter');
+        if (summaryFyEl) summaryFyEl.addEventListener('change', renderSummaryTable);
+        
+        // Column filter listeners for Summary table
+        const summaryFilterIds = ['col-filter-summary-empId', 'col-filter-summary-empName', 'summary-fy-filter'];
+        summaryFilterIds.forEach(id => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const ev = (el.tagName.toLowerCase() === 'select' || el.type === 'date') ? 'change' : 'input';
+            // --- MODIFICATION START ---
+            // Attach ALL listeners here. They are static now.
+            el.addEventListener(ev, () => renderSummaryTable());
+            // --- MODIFICATION END ---
+        });
+        
+        // Clear filters button for Summary
+        const clearSummaryBtn = document.getElementById('clear-filters-summary');
+        if (clearSummaryBtn) {
+            clearSummaryBtn.addEventListener('click', () => {
+                const ids = ['col-filter-summary-empId', 'col-filter-summary-empName'];
+                ids.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (!el) return;
+                    el.value = '';
+                    if (el.tagName.toLowerCase() === 'input') el.dispatchEvent(new Event('input'));
+                });
+                const fyEl = document.getElementById('summary-fy-filter');
+                if (fyEl) {
+                    Array.from(fyEl.options).forEach(opt => opt.selected = (opt.value === getCurrentFy()));
+                    fyEl.dispatchEvent(new Event('change'));
+                }
+                renderSummaryTable();
+            });
+        }
+
+        const propFyEl = document.getElementById('filter-proposal-fy');
+        if (propFyEl) propFyEl.addEventListener('change', renderProposalsTable);
+
+        const apprFyEl = document.getElementById('filter-approved-fy');
+        if (apprFyEl) apprFyEl.addEventListener('change', renderApprovedProposalsTable);
+
+        const apprProdTypeEl = document.getElementById('filter-approved-product-type');
+        if (apprProdTypeEl) apprProdTypeEl.addEventListener('change', renderApprovedProposalsTable);
+
+        const archFyEl = document.getElementById('filter-archived-fy');
+        if (archFyEl) archFyEl.addEventListener('change', renderArchivedProposalsTable);
+
+        const archProdTypeEl = document.getElementById('filter-archived-product-type');
+        if (archProdTypeEl) archProdTypeEl.addEventListener('change', renderArchivedProposalsTable);
+
+        const archStatusEl = document.getElementById('filter-archived-status');
+        if (archStatusEl) archStatusEl.addEventListener('change', renderArchivedProposalsTable);
 
         // --- ADDED ---
-        document.getElementById('filter-new-products-fy').addEventListener('change', renderNewProductsList);
+        const newProdFyEl = document.getElementById('filter-new-products-fy');
+        if (newProdFyEl) newProdFyEl.addEventListener('change', renderNewProductsList);
         // --- END ADDED ---
 
         const productTypeSelect = document.getElementById('productType');
@@ -5850,7 +6627,38 @@
         const catL3 = form.querySelector('#categoryL3');
         productTypeSelect.innerHTML = '<option value="">Select Type</option><option value="Pharma">Pharma</option><option value="FMCG">FMCG</option><option value="Surgical">Surgical</option><option value="Device">Device</option>';
         auditForm.innerHTML = '<option value="">Select Form</option>' + ['Tablets','Ointments','Liquids','General','Injections','Surgicals','Containers','Powders','Drops','Inhalers','Fridge Items','Frames','Lens'].map(o => `<option>${o}</option>`).join('');
-        productTypeSelect.addEventListener('change', (e) => { const type = e.target.value; auditForm.required = false; composition.required = false; catL1.required = false; catL2.required = false; catL3.required = false; form.querySelectorAll('.mandatory-star').forEach(star => { star.style.display = star.dataset.reqFor.split(' ').includes(type) ? 'inline' : 'none'; }); if (type === 'Pharma') { auditForm.required = true; composition.required = true; } else if (['FMCG', 'Surgical', 'Device'].includes(type)) { catL1.required = true; catL2.required = true; catL3.required = true; } });
+        productTypeSelect.addEventListener('change', (e) => {
+            const type = e.target.value;
+            // Reset required flags
+            auditForm.required = false;
+            composition.required = false;
+            catL1.required = false;
+            catL2.required = false;
+            catL3.required = false;
+
+            // Toggle the mandatory-star indicators
+            form.querySelectorAll('.mandatory-star').forEach(star => {
+                star.style.display = star.dataset.reqFor.split(' ').includes(type) ? 'inline' : 'none';
+            });
+
+            // Pack size container (appears only for Pharma)
+            const packContainer = document.getElementById('packSize-container');
+            const packInput = document.getElementById('packSize');
+
+            if (type === 'Pharma') {
+                auditForm.required = true;
+                composition.required = true;
+                if (packContainer) packContainer.classList.remove('hidden');
+            } else {
+                if (['FMCG', 'Surgical', 'Device'].includes(type)) {
+                    catL1.required = true;
+                    catL2.required = true;
+                    catL3.required = true;
+                }
+                if (packContainer) packContainer.classList.add('hidden');
+                if (packInput) packInput.value = '';
+            }
+        });
         catL1.innerHTML = '<option value="">Select L1</option>' + Object.keys(categoryData).map(k => `<option value="${k}">${k}</option>`).join('');
         catL1.addEventListener('change', () => { const l1Value = catL1.value; catL2.innerHTML = '<option value="">Select L2</option>'; catL3.innerHTML = '<option value="">Select L3</option>'; catL2.disabled = true; catL3.disabled = true; if (l1Value && categoryData[l1Value]) { catL2.innerHTML += Object.keys(categoryData[l1Value]).map(k => `<option value="${k}">${k}</option>`).join(''); catL2.disabled = false; } });
         catL2.addEventListener('change', () => { const l1Value = catL1.value; const l2Value = catL2.value; catL3.innerHTML = '<option value="">Select L3</option>'; catL3.disabled = true; if (l1Value && l2Value && categoryData[l1Value][l2Value]) { catL3.innerHTML += categoryData[l1Value][l2Value].map(k => `<option value="${k}">${k}</option>`).join(''); catL3.disabled = false; } });
@@ -6153,7 +6961,141 @@
             const filterEl = document.getElementById(filterId);
             if(filterEl) {
                 filterEl.innerHTML = optionsHtml;
+                // Upgrade native select into a nicer multiselect UI (keeps native select for logic)
+                try { upgradeFyMultiselect(filterId); } catch (e) { console.warn('upgradeFyMultiselect failed for', filterId, e); }
             }
+        });
+    }
+
+    // --- Fancy FY multiselect UI ---
+    function upgradeFyMultiselect(selectId) {
+        const sel = document.getElementById(selectId);
+        if (!sel) return;
+        if (sel.dataset.upgraded === '1') return; // already upgraded
+
+        // inject styles once
+        if (!document.getElementById('fy-multiselect-styles')) {
+            const style = document.createElement('style');
+            style.id = 'fy-multiselect-styles';
+            style.innerHTML = `
+            .fy-multi { position: relative; display: inline-block; }
+            .fy-button { display:inline-flex; align-items:center; justify-content:space-between; gap:8px; width:100%; padding:6px 10px; border:1px solid #cbd5e1; background:white; border-radius:6px; cursor:pointer; }
+            .fy-dropdown { position:absolute; z-index:60; background:white; border:1px solid #e2e8f0; box-shadow:0 6px 18px rgba(2,6,23,0.08); border-radius:8px; padding:8px; margin-top:6px; min-width:220px; max-height:220px; overflow:auto; }
+            .fy-item { display:flex; align-items:center; gap:8px; padding:6px 4px; }
+            .fy-all { font-weight:600; border-bottom:1px solid #f1f5f9; padding-bottom:6px; margin-bottom:6px; }
+            `;
+            document.head.appendChild(style);
+        }
+
+        // hide native select visually but keep in DOM for logic
+        sel.style.display = 'none';
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'fy-multi';
+        wrapper.style.width = sel.offsetWidth ? sel.offsetWidth + 'px' : '220px';
+
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'fy-button';
+        button.innerHTML = `<span class="fy-label">All</span><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>`;
+
+        const dropdown = document.createElement('div');
+        dropdown.className = 'fy-dropdown hidden';
+        dropdown.style.display = 'none';
+
+        // build items from select options
+        // Add 'All' checkbox at top
+        const allDiv = document.createElement('div');
+        allDiv.className = 'fy-item fy-all';
+        const allChk = document.createElement('input'); allChk.type = 'checkbox'; allChk.id = selectId + '-all';
+        const allLbl = document.createElement('label'); allLbl.htmlFor = allChk.id; allLbl.innerText = 'All';
+        allDiv.appendChild(allChk); allDiv.appendChild(allLbl);
+        dropdown.appendChild(allDiv);
+
+        Array.from(sel.options).forEach((opt, idx) => {
+            const item = document.createElement('label');
+            item.className = 'fy-item';
+            const chk = document.createElement('input'); chk.type = 'checkbox'; chk.value = opt.value; chk.checked = opt.selected || opt.value === 'All'; chk.dataset.index = idx;
+            const lbl = document.createElement('span'); lbl.innerText = opt.text || opt.value;
+            item.appendChild(chk); item.appendChild(lbl);
+            dropdown.appendChild(item);
+
+            chk.addEventListener('change', () => {
+                // sync native select option
+                if (opt.value === 'All') {
+                    // if All checked, select all options
+                    if (chk.checked) {
+                        Array.from(dropdown.querySelectorAll('input[type="checkbox"]')).forEach(c => { c.checked = (c === chk) ? true : true; });
+                        Array.from(sel.options).forEach(o => o.selected = true);
+                    } else {
+                        Array.from(sel.options).forEach(o => o.selected = false);
+                    }
+                } else {
+                    sel.options[idx].selected = chk.checked;
+                    // if any non-All unchecked, uncheck All
+                    const allCheckbox = dropdown.querySelector('#' + selectId + '-all');
+                    if (allCheckbox && allCheckbox.checked && !chk.checked) allCheckbox.checked = false;
+                }
+                sel.dispatchEvent(new Event('change'));
+                updateFyButtonLabel();
+            });
+        });
+
+        // clicking All checkbox behavior
+        allChk.addEventListener('change', () => {
+            if (allChk.checked) {
+                Array.from(dropdown.querySelectorAll('input[type="checkbox"]')).forEach(c => c.checked = true);
+                Array.from(sel.options).forEach(o => o.selected = true);
+            } else {
+                Array.from(dropdown.querySelectorAll('input[type="checkbox"]')).forEach(c => c.checked = false);
+                Array.from(sel.options).forEach(o => o.selected = false);
+            }
+            sel.dispatchEvent(new Event('change'));
+            updateFyButtonLabel();
+        });
+
+        function updateFyButtonLabel() {
+            const checked = Array.from(dropdown.querySelectorAll('input[type="checkbox"]')).filter(c => c.checked && c.value !== '').map(c => c.value);
+            const lab = wrapper.querySelector('.fy-label');
+            if (!lab) return;
+            if (checked.length === 0) lab.innerText = 'All';
+            else if (checked.length === 1) lab.innerText = checked[0];
+            else lab.innerText = `${checked.length} selected`;
+        }
+
+        // show/hide dropdown
+        button.addEventListener('click', (e) => { e.preventDefault(); const open = dropdown.style.display !== 'none'; document.querySelectorAll('.fy-dropdown').forEach(d => d.style.display = 'none'); dropdown.style.display = open ? 'none' : 'block'; });
+
+        // update UI when native select changes (so clear helpers sync)
+        sel.addEventListener('change', () => {
+            // sync checkboxes
+            Array.from(dropdown.querySelectorAll('input[type="checkbox"]')).forEach(chk => {
+                if (chk === allChk) return; // skip all
+                const found = Array.from(sel.options).find(o => o.value === chk.value);
+                chk.checked = found ? found.selected : false;
+            });
+            // set All checkbox accordingly
+            const nonAll = Array.from(dropdown.querySelectorAll('input[type="checkbox"]')).filter(c => c !== allChk && c.value !== '');
+            const allState = nonAll.length > 0 && nonAll.every(c => c.checked);
+            allChk.checked = allState;
+            updateFyButtonLabel();
+        });
+
+        // assemble
+        wrapper.appendChild(button);
+        wrapper.appendChild(dropdown);
+        sel.parentNode.insertBefore(wrapper, sel.nextSibling);
+
+        // mark upgraded
+        sel.dataset.upgraded = '1';
+
+        // initialize label
+        // trigger an initial sync based on current select options
+        sel.dispatchEvent(new Event('change'));
+
+        // close dropdown on outside click
+        document.addEventListener('click', (ev) => {
+            if (!wrapper.contains(ev.target)) dropdown.style.display = 'none';
         });
     }
 
@@ -6191,16 +7133,21 @@ function openGrnModal() {
     // Fill existing details
     document.getElementById('optivalGrnId').value = existing.optivalGrnId;
     document.getElementById('grnDate').value = formatDateToYYYYMMDD(existing.grnDate);
+        document.getElementById('grnQuantity').value = existing.grnQuantity || '';
 
     // Make fields read-only since GRN is completed
     document.getElementById('optivalGrnId').setAttribute('readonly', true);
     document.getElementById('grnDate').setAttribute('readonly', true);
+        document.getElementById('grnQuantity').setAttribute('readonly', true);
 
     // Hide Save button to prevent edits
     grnForm.querySelector('button[type="submit"]').classList.add('hidden');
   } else {
     // No data yet — allow entry
     grnForm.reset();
+        // ensure the quantity input is cleared and writable
+        document.getElementById('grnQuantity').value = '';
+        document.getElementById('grnQuantity').removeAttribute('readonly');
     document.getElementById('optivalGrnId').removeAttribute('readonly');
     document.getElementById('grnDate').removeAttribute('readonly');
     grnForm.querySelector('button[type="submit"]').classList.remove('hidden');
@@ -6220,6 +7167,8 @@ grnForm.addEventListener('submit', (e) => {
 
   const optivalGrnId = document.getElementById('optivalGrnId').value.trim();
   const grnDate = document.getElementById('grnDate').value;
+  const grnQuantityRaw = document.getElementById('grnQuantity').value;
+  const grnQuantity = parseInt(grnQuantityRaw, 10);
   const task = wipTasks.find(t => t.id === currentWipId);
   if (!task) {
       console.error("Task not found for GRN save:", currentWipId);
@@ -6230,12 +7179,17 @@ grnForm.addEventListener('submit', (e) => {
       alert("Please fill in both Optival GRN ID and GRN Date.");
       return;
   }
+  if (isNaN(grnQuantity) || grnQuantity <= 0) {
+      alert('Please enter a valid GRN Quantity (greater than 0).');
+      return;
+  }
 
   // Save GRN data
   const newData = {
     id: Date.now(),
     optivalGrnId,
     grnDate: formatDateToDDMMYYYY(grnDate), // Ensure date is stored in DD-MM-YYYY
+        grnQuantity,
     status: 'Completed'
   };
 
@@ -6255,6 +7209,21 @@ grnForm.addEventListener('submit', (e) => {
   // --- ADDED THIS LINE ---
   renderWipDetail(); // Re-render the main WIP detail view to update the card status text
 
+  // If saving GRN causes the product to be marked as Launched, persist launched metadata once
+  try {
+      const newStatus = calculateWipStatus(task);
+      if (newStatus === 'Launched' && !task.launchedOn) {
+          // Use GRN date as launchedOn if available, else use today's date
+          task.launchedOn = newData.grnDate || formatDateToDDMMYYYY(new Date().toISOString().split('T')[0]);
+          task.launchedBy = currentUser && currentUser.name ? currentUser.name : '';
+      }
+  } catch (e) {
+      console.warn('Could not determine new status after GRN save', e);
+  }
+
+  // Ensure lists update to show launched product in Launched tab
+  renderNewProductsList();
+
   grnModal.classList.add('hidden');
   alert('GRN details saved successfully!');
 });
@@ -6271,9 +7240,10 @@ function renderGrnTable(grnData) {
 
   const rows = grnData.map((row) => `
     <tr class="border-b">
-      <td class="px-4 py-2">${row.optivalGrnId}</td>
-      <td class="px-4 py-2">${row.grnDate}</td>
-      <td class="px-4 py-2 text-green-600 font-semibold">${row.status}</td>
+            <td class="px-4 py-2">${row.optivalGrnId}</td>
+            <td class="px-4 py-2">${row.grnDate}</td>
+            <td class="px-4 py-2">${row.grnQuantity || ''}</td>
+            <td class="px-4 py-2 text-green-600 font-semibold">${row.status}</td>
     </tr>
   `).join('');
 
@@ -6281,9 +7251,10 @@ function renderGrnTable(grnData) {
     <table class="w-full text-sm text-left border border-slate-200">
       <thead class="bg-slate-100">
         <tr>
-          <th class="px-4 py-2">Optival GRN ID</th>
-          <th class="px-4 py-2">GRN Date</th>
-          <th class="px-4 py-2">Status</th>
+                    <th class="px-4 py-2">Optival GRN ID</th>
+                    <th class="px-4 py-2">GRN Date</th>
+                    <th class="px-4 py-2">GRN Quantity</th>
+                    <th class="px-4 py-2">Status</th>
         </tr>
       </thead>
       <tbody>${rows}</tbody>

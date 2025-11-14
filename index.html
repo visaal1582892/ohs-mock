@@ -1529,6 +1529,9 @@
         
         const hasApprovableVariant = p.commercials.data.some(comm => {
             if (comm.status !== 'Completed') return false;
+            // --- MODIFICATION START: Exclude rejected commercials ---
+            if (p.rejectedCommercialIds && p.rejectedCommercialIds.includes(comm.id)) return false;
+            // --- MODIFICATION END ---
             const sample = p.sample.data.find(s => s.id == comm.sampleId && s.status === 'Completed');
             if (!sample) return false;
             const vendor = p.vendorIdentification.data.find(v => v.id == sample.vendorId && v.status === 'Completed');
@@ -2132,6 +2135,9 @@
             if (isManagerView && isActionable) { 
                 const approvableCommercials = p.commercials.data.filter(comm => {
                     if (comm.status !== 'Completed') return false;
+                    // --- MODIFICATION START: Exclude rejected commercials ---
+                    if (p.rejectedCommercialIds && p.rejectedCommercialIds.includes(comm.id)) return false;
+                    // --- MODIFICATION END ---
                     const sample = p.sample.data.find(s => s.id == comm.sampleId && s.status === 'Completed');
                     if (!sample) return false;
                     const vendor = p.vendorIdentification.data.find(v => v.id == sample.vendorId && v.status === 'Completed');
@@ -2139,8 +2145,12 @@
                 });
                 const canApprove = approvableCommercials.length > 0;
                 
-                actionsContainer.innerHTML += `<button id="btn-approve-proposal" class="font-semibold py-2 px-4 rounded-lg shadow-sm transition-all duration-200 ${canApprove ? 'bg-green-600 text-white hover:bg-green-700 hover:shadow-md' : 'bg-slate-200 text-slate-500 btn-disabled'}" ${!canApprove ? 'disabled title="At least one variant must have completed Vendor, Sample, and Commercials stages."' : ''}>Approve Proposal</button>`; 
-                actionsContainer.innerHTML += `<button id="btn-reject-proposal" class="font-semibold py-2 px-4 rounded-lg shadow-sm transition-all duration-200 ${canApprove ? 'bg-red-600 text-white hover:bg-red-700 hover:shadow-md' : 'bg-slate-200 text-slate-500 btn-disabled'}" ${!canApprove ? 'disabled title="Rejection is only possible when the proposal is ready for a decision."' : ''}>Reject Proposal</button>`; 
+                // --- MODIFICATION START: Only show buttons if there are approvable commercials ---
+                if (canApprove) {
+                    actionsContainer.innerHTML += `<button id="btn-approve-proposal" class="font-semibold py-2 px-4 rounded-lg shadow-sm transition-all duration-200 bg-green-600 text-white hover:bg-green-700 hover:shadow-md">Approve Proposal</button>`; 
+                    actionsContainer.innerHTML += `<button id="btn-reject-proposal" class="font-semibold py-2 px-4 rounded-lg shadow-sm transition-all duration-200 bg-red-600 text-white hover:bg-red-700 hover:shadow-md">Reject Proposal</button>`;
+                }
+                // --- MODIFICATION END --- 
                 actionsContainer.innerHTML += `<button id="btn-transfer-owner" class="bg-slate-500 text-white font-semibold py-2 px-4 rounded-lg shadow-sm hover:bg-slate-600 transition hover:shadow-md">Transfer Ownership</button>`; 
             }
             if (isActionable && !isManagerView && p.owner === currentUser.name) { // <-- MODIFICATION: Added owner check

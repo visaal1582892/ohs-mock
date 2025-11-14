@@ -517,6 +517,7 @@
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Product Type</th>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Description</th>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
+                                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Pending Commercials</th>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Owner</th>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Created On</th>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Created by</th>
@@ -543,6 +544,7 @@
                                                     <option>Approval Pending</option>
                                                 </select>
                                             </th>
+                                            <th class="px-6 py-2 text-left text-xs"><!-- no filter for counts --></th>
                                             <th class="px-6 py-2 text-left text-xs">
                                                 <input id="col-filter-owner" type="search" placeholder="Search owner" class="mt-1 block w-full pl-2 pr-2 py-1 text-sm border-slate-200 rounded">
                                             </th>
@@ -1780,15 +1782,62 @@
         filteredProposals.sort((a, b) => parseDateForSorting(b.createdDate) - parseDateForSorting(a.createdDate));
         
         if (filteredProposals.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="7" class="text-center py-10 text-slate-500">No proposals match the current filters.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="8" class="text-center py-10 text-slate-500">No proposals match the current filters.</td></tr>`;
             return;
         }
 
-        filteredProposals.forEach(p => { const status = calculateProposalStatus(p); const row = document.createElement('tr'); row.className = 'hover:bg-indigo-100/50 cursor-pointer transition-colors duration-150'; row.dataset.id = p.id; row.innerHTML = ` <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">${p.id}</td> <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${p.productType}</td> <td class="px-6 py-4 text-sm text-slate-500 whitespace-normal max-w-xs truncate" title="${p.description || ''}">${p.description || ''}</td> <td class="px-6 py-4 whitespace-nowrap text-sm"><span class="status-badge ${getStatusClass(status)}">${status}</span></td> <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${p.owner}</td> <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${p.createdDate}</td> <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${p.createdBy}</td> `; row.addEventListener('click', () => { currentProposalId = p.id; renderProposalDetail(); const proposalDetailBackBtn = document.getElementById('proposal-detail-back-btn'); proposalDetailBackBtn.textContent = '← Back to Proposals'; proposalDetailBackBtn.onclick = () => { 
-                renderProposalsTable(); 
-                showView('proposals'); 
-                document.getElementById('inner-tab-current').click(); // <-- Make sure correct inner tab is active
-            }; showView('proposalDetail'); }); tbody.appendChild(row); });
+        filteredProposals.forEach(p => {
+            const status = calculateProposalStatus(p);
+
+            // Compute approvable/pending commercials for this proposal
+            const allCommercials = (p.commercials && p.commercials.data) || [];
+            const approvedIds = p.approvedCommercialIds || [];
+            const approvableCommercials = allCommercials.filter(comm => {
+                // only commercials marked completed are approvable
+                if (comm.status !== 'Completed') return false;
+                // exclude already-approved ids just in case
+                if (approvedIds.includes(comm.id)) return false;
+                // sample must exist and be completed
+                const sample = (p.sample && p.sample.data) ? p.sample.data.find(s => s.id == comm.sampleId) : null;
+                if (!sample || sample.status !== 'Completed') return false;
+                // vendor must exist and be completed
+                const vendor = (p.vendorIdentification && p.vendorIdentification.data) ? p.vendorIdentification.data.find(v => v.id == sample.vendorId) : null;
+                if (!vendor || vendor.status !== 'Completed') return false;
+                return true;
+            });
+
+            const pendingCount = approvableCommercials.length;
+
+            const row = document.createElement('tr');
+            row.className = 'hover:bg-indigo-100/50 cursor-pointer transition-colors duration-150';
+            row.dataset.id = p.id;
+
+            row.innerHTML = `
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">${p.id}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${p.productType}</td>
+                <td class="px-6 py-4 text-sm text-slate-500 whitespace-normal max-w-xs truncate" title="${p.description || ''}">${p.description || ''}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm"><span class="status-badge ${getStatusClass(status)}">${status}</span></td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500 font-semibold text-orange-600">${pendingCount}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${p.owner}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${p.createdDate}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${p.createdBy}</td>
+            `;
+
+            row.addEventListener('click', () => {
+                currentProposalId = p.id;
+                renderProposalDetail();
+                const proposalDetailBackBtn = document.getElementById('proposal-detail-back-btn');
+                proposalDetailBackBtn.textContent = '← Back to Proposals';
+                proposalDetailBackBtn.onclick = () => {
+                    renderProposalsTable();
+                    showView('proposals');
+                    document.getElementById('inner-tab-current').click(); // ensure inner tab active
+                };
+                showView('proposalDetail');
+            });
+
+            tbody.appendChild(row);
+        });
     };
     const renderApprovedProposalsTable = () => {
         const apprFyEl = document.getElementById('filter-approved-fy');
@@ -1843,13 +1892,26 @@
         if(approved.length === 0) { tbody.innerHTML = `<tr><td colspan="10" class="text-center py-10 text-slate-500">No approved proposals match the current filters.</td></tr>`; return; }
         
         approved.forEach(p => { 
-            const status = calculateProposalStatus(p); 
+            const status = calculateProposalStatus(p);
             const approvedCount = (p.approvedCommercialIds && p.approvedCommercialIds.length) || 0;
-            // Count only completed commercials (excluding rejected ones) that are not yet approved
-            const completedNonRejectedCommercials = (p.commercials && p.commercials.data) 
-                ? p.commercials.data.filter(c => c.status === 'Completed' && c.status !== 'Rejected').length 
-                : 0;
-            const pendingCount = completedNonRejectedCommercials - approvedCount;
+
+            // Compute only those commercials that are actually available for approval:
+            // - commercial.status must be 'Completed'
+            // - commercial id must not already be in approvedCommercialIds
+            // - linked sample must exist and be 'Completed'
+            // - linked vendor must exist and be 'Completed'
+            const allCommercials = (p.commercials && p.commercials.data) || [];
+            const approvedIds = p.approvedCommercialIds || [];
+            const approvableCommercials = allCommercials.filter(comm => {
+                if (comm.status !== 'Completed') return false;
+                if (approvedIds.includes(comm.id)) return false;
+                const sample = (p.sample && p.sample.data) ? p.sample.data.find(s => s.id == comm.sampleId) : null;
+                if (!sample || sample.status !== 'Completed') return false;
+                const vendor = (p.vendorIdentification && p.vendorIdentification.data) ? p.vendorIdentification.data.find(v => v.id == sample.vendorId) : null;
+                if (!vendor || vendor.status !== 'Completed') return false;
+                return true;
+            });
+            const pendingCount = approvableCommercials.length;
             
             const row = document.createElement('tr'); 
             row.className = 'hover:bg-indigo-100/50 cursor-pointer transition-colors duration-150'; 
@@ -3942,17 +4004,17 @@
                 fields: [
                     { id: 'vendorId', label: 'Vendor', type: 'select', options: p.vendorIdentification.data.filter(v => v.status === 'Completed' || v.status === 'WIP').map(v => ({value: v.id, text: v.vendorName})), required: true },
                     { id: 'sampleId', label: 'Sample', type: 'select', options: [], required: true }, // Options populated dynamically
-                    { id: 'productVariant', label: 'Product Variant', type: 'text', required: true }, // <-- MODIFICATION: Added required: true
-                    { id: 'productCost', label: 'Product Cost (Per Unit)', type: 'number' },
+                    { id: 'productVariant', label: 'Product Variant', type: 'text', required: true },
+                    { id: 'productCost', label: 'Product Cost (Per Unit)', type: 'number', required: true },
                     { id: 'moq', label: 'MOQ', type: 'number' },
                     { id: 'logisticsCost', label: 'Logistics Cost (Per Unit)', type: 'number' },
                     { id: 'totalLandedCost', label: 'Total Landed Cost (Per Unit)', type: 'number', readonly: true },
                     { id: 'employeeIncentivePercentage', label: 'Employee Incentive %', type: 'number' },
-                    { id: 'probableSP', label: 'Probable SP (Per Unit)', type: 'number' },
+                    { id: 'probableSP', label: 'Probable SP (Per Unit)', type: 'number', required: true },
                     { id: 'margin', label: 'Margin', type: 'number', readonly: true },
                     { id: 'marginPercentage', label: 'Margin %', type: 'number', readonly: true },
-                    { id: 'tentativeMRP', label: 'Tentative MRP (Per Unit)', type: 'number' },
-                    { id: 'gstPercentage', label: 'GST %', type: 'number' },
+                    { id: 'tentativeMRP', label: 'Tentative MRP (Per Unit)', type: 'number', required: true },
+                    { id: 'gstPercentage', label: 'GST %', type: 'number', required: true },
                     { id: 'expectedTotalInvestment', label: 'Expected Total Investment', type: 'text', readonly: true },
                     { id: 'leadTime', label: 'Lead Time (days)', type: 'number', required: true },
                     { id: 'paymentTermsGroup', label: 'Payment Terms', type: 'group_placeholder', span: 2 },
@@ -3986,8 +4048,8 @@
                         <label class="block text-sm font-medium text-slate-700">Payment Terms</label>
                         <div class="mt-1 p-4 border border-slate-200 rounded-lg grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label for="advancePercentage" class="block text-sm font-medium text-slate-700">Advance %</label>
-                                <input type="number" id="advancePercentage" value="${(entryData && entryData.advancePercentage)}" min="0" max="100" step="1" class="mt-1 block w-full border-slate-300 rounded-lg shadow-sm">
+                                <label for="advancePercentage" class="block text-sm font-medium text-slate-700">Advance % <span class="text-red-500">*</span></label>
+                                <input type="number" id="advancePercentage" value="${(entryData && entryData.advancePercentage)}" min="0" max="100" step="1" class="mt-1 block w-full border-slate-300 rounded-lg shadow-sm" required>
                             </div>
                             <div id="balancePaymentContainer">
                                 <label for="balancePaymentType" class="block text-sm font-medium text-slate-700">Balance Payment <span class="text-red-500">*</span></label>
@@ -4502,19 +4564,15 @@
 
         // --- MODIFICATION START: Add validation for Product Variant ---
         if (currentStage === 'commercials') {
-            // const productVariantInput = form.querySelector('#productVariant'); // <-- OLD
-            // if (!productVariantInput.value.trim()) { // <-- OLD
-            //     errorContainer.textContent = `Please fill all mandatory fields marked with an asterisk (*).`; // <-- OLD
-            //     errorContainer.classList.remove('hidden'); // <-- OLD
-            //     productVariantInput.classList.add('border-red-500'); // <-- OLD
-            //     productVariantInput.focus(); // <-- OLD
-            //     return; // <-- OLD
-            // } // <-- OLD
-            
             const productVariantInput = form.querySelector('#productVariant');
             const vendorInput = form.querySelector('#vendorId');
             const sampleInput = form.querySelector('#sampleId');
-            const leadTimeInput = form.querySelector('#leadTime'); // <-- ADDED
+            const leadTimeInput = form.querySelector('#leadTime');
+            const productCostInput = form.querySelector('#productCost');
+            const probableSPInput = form.querySelector('#probableSP');
+            const tentativeMRPInput = form.querySelector('#tentativeMRP');
+            const gstPercentageInput = form.querySelector('#gstPercentage');
+            const advancePercentageInput = form.querySelector('#advancePercentage');
             
             let isValid = true;
             let firstInvalidField = null;
@@ -4534,11 +4592,37 @@
                 if (!firstInvalidField) firstInvalidField = sampleInput;
                 isValid = false;
             }
-            if (!leadTimeInput.value.trim()) { // <-- ADDED
-                leadTimeInput.classList.add('border-red-500'); // <-- ADDED
-                if (!firstInvalidField) firstInvalidField = leadTimeInput; // <-- ADDED
-                isValid = false; // <-- ADDED
-            } // <-- ADDED
+            if (!leadTimeInput.value.trim()) {
+                leadTimeInput.classList.add('border-red-500');
+                if (!firstInvalidField) firstInvalidField = leadTimeInput;
+                isValid = false;
+            }
+            // Validate new mandatory fields
+            if (!productCostInput.value.trim()) {
+                productCostInput.classList.add('border-red-500');
+                if (!firstInvalidField) firstInvalidField = productCostInput;
+                isValid = false;
+            }
+            if (!probableSPInput.value.trim()) {
+                probableSPInput.classList.add('border-red-500');
+                if (!firstInvalidField) firstInvalidField = probableSPInput;
+                isValid = false;
+            }
+            if (!tentativeMRPInput.value.trim()) {
+                tentativeMRPInput.classList.add('border-red-500');
+                if (!firstInvalidField) firstInvalidField = tentativeMRPInput;
+                isValid = false;
+            }
+            if (!gstPercentageInput.value.trim()) {
+                gstPercentageInput.classList.add('border-red-500');
+                if (!firstInvalidField) firstInvalidField = gstPercentageInput;
+                isValid = false;
+            }
+            if (!advancePercentageInput.value.trim() && advancePercentageInput.value !== '0') {
+                advancePercentageInput.classList.add('border-red-500');
+                if (!firstInvalidField) firstInvalidField = advancePercentageInput;
+                isValid = false;
+            }
 
             // If balance payment field is visible, it must have a selected value
             const balanceContainerCheck = form.querySelector('#balancePaymentContainer');
@@ -4562,7 +4646,6 @@
                 return;
             }
         }
-        // --- MODIFICATION END ---
 
         // --- MODIFICATION START: Add validation for Agreement (proposal) ---
         if (currentStage === 'agreementProposal') {
@@ -4973,6 +5056,12 @@
         if (views.wipDetail.classList.contains('view-active')) renderWipDetail();
         if (views.wipStageDetail.classList.contains('view-active')) renderWipStageTableView();
         // if (views.proposalTasks.classList.contains('view-active')) renderProposalTasksView(); // This view seems to be part of a different flow
+
+        // Show/hide Create Proposal button for manager vs employee
+        const createProposalBtn = document.getElementById('btn-create-proposal');
+        if (createProposalBtn) {
+            createProposalBtn.style.display = isManagerView ? 'none' : '';
+        }
     }
     function handleTabClick(e) { 
         const targetButton = e.currentTarget; // <-- Use currentTarget
@@ -5967,6 +6056,13 @@
         // tabs.approvedProposals.addEventListener('click', handleTabClick); // <-- REMOVED
         tabs.summary.addEventListener('click', handleTabClick);
         tabs.newProducts.addEventListener('click', handleTabClick);
+
+        // Wire Create Proposal button and set initial visibility based on role
+        const createProposalBtn = document.getElementById('btn-create-proposal');
+        if (createProposalBtn) {
+            createProposalBtn.addEventListener('click', handleCreateProposalClick);
+            createProposalBtn.style.display = isManagerView ? 'none' : '';
+        }
         
         const modals = ['create-proposal-modal', 'stage-entry-modal', 'wip-stage-entry-modal', 'add-product-modal', 'vendor-selection-modal', 'final-approval-modal', 'transfer-owner-modal', 'yes-no-modal', 'vendor-details-modal', 'proposal-list-modal', 'edit-product-name-modal', 'pending-variants-approval-modal']; 
         modals.forEach(id => { 

@@ -1322,6 +1322,7 @@
     let confirmationAction = null;
     let isWipExpanded = false; // <-- New state for summary view
     let productsToTransfer = []; // <-- MODIFICATION: Added global variable
+    let isBulkTransferMode = false; // When true, show checkboxes in product tables for bulk transfer
     let contextIsFromApprovedTab = false; // To track context for back button
     let currentWipDetailBackView = 'proposalTasks'; // <-- ADDED: To store back-button context
     let editProductNameContext = null; // <-- ADDED: To store context for product name edit
@@ -1502,7 +1503,14 @@
     let mainSidebar, sidebarOverlay; // <-- Declare globally
 
     // --- UTILITY FUNCTIONS ---
-    const showView = (viewName) => { Object.values(views).forEach(view => view.classList.remove('view-active')); if (views[viewName]) views[viewName].classList.add('view-active'); };
+    const showView = (viewName) => { 
+        // Auto-cancel bulk transfer mode when leaving newProductsList view
+        if (viewName !== 'newProductsList' && isBulkTransferMode) {
+            cancelBulkTransferMode();
+        }
+        Object.values(views).forEach(view => view.classList.remove('view-active')); 
+        if (views[viewName]) views[viewName].classList.add('view-active'); 
+    };
     const getStatusClass = (status) => { const statusMap = { 'Pending': 'status-pending', 'No': 'status-pending', 'WIP': 'status-wip', 'Partially Completed': 'status-wip', 'Approval Pending': 'status-approval-pending', 'Approved': 'status-approved', 'Yes': 'status-completed', 'Rejected': 'status-rejected', 'Withdrawn': 'status-withdrawn', 'Project Approved': 'status-approved', 'Launched': 'status-launched', 'Cancelled': 'status-cancelled', 'Completed': 'status-completed', }; return statusMap[status] || 'bg-slate-200 text-slate-800'; };
  
     <!-- --- MODIFICATION START: Updated status display logic --- -->
@@ -1717,6 +1725,81 @@
     }
     // --- MODIFICATION END ---
 
+    // --- NEW: Bulk transfer UI flow functions ---
+    function startBulkTransferMode() {
+        // Activate bulk-transfer mode: show checkboxes in tables and replace header button with Next/Cancel
+        isBulkTransferMode = true;
+        productsToTransfer = [];
+        const bulkBtn = document.getElementById('btn-transfer-wip-owner-bulk');
+        if (bulkBtn) bulkBtn.classList.add('hidden');
+
+        // Create control container if not present
+        let controls = document.getElementById('bulk-transfer-controls');
+        if (!controls) {
+            controls = document.createElement('div');
+            controls.id = 'bulk-transfer-controls';
+            controls.className = 'inline-flex items-center gap-2';
+            bulkBtn.parentNode.appendChild(controls);
+        }
+        controls.innerHTML = '';
+
+        const nextBtn = document.createElement('button');
+        nextBtn.id = 'bulk-transfer-next-btn';
+        nextBtn.type = 'button';
+        nextBtn.className = 'inline-flex items-center gap-2 bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg shadow-sm hover:bg-indigo-700 transition-all duration-200 hover:shadow-md';
+        nextBtn.innerText = 'Next';
+        nextBtn.addEventListener('click', proceedBulkTransferNext);
+
+        const cancelBtn = document.createElement('button');
+        cancelBtn.id = 'bulk-transfer-cancel-btn';
+        cancelBtn.type = 'button';
+        cancelBtn.className = 'inline-flex items-center gap-2 bg-slate-200 text-slate-800 font-semibold py-2 px-4 rounded-lg hover:bg-slate-300 transition-all duration-200 hover:shadow-md';
+        cancelBtn.innerText = 'Cancel';
+        cancelBtn.addEventListener('click', cancelBulkTransferMode);
+
+        controls.appendChild(nextBtn);
+        controls.appendChild(cancelBtn);
+
+        // Re-render product lists to show checkboxes
+        renderNewProductsList();
+    }
+
+    function cancelBulkTransferMode() {
+        isBulkTransferMode = false;
+        productsToTransfer = [];
+        const bulkBtn = document.getElementById('btn-transfer-wip-owner-bulk');
+        if (bulkBtn) bulkBtn.classList.remove('hidden');
+        const controls = document.getElementById('bulk-transfer-controls');
+        if (controls) controls.remove();
+        renderNewProductsList();
+    }
+
+    function proceedBulkTransferNext() {
+        // Collect selected products from checkboxes in the tables
+        const selected = Array.from(document.querySelectorAll('.bulk-transfer-checkbox:checked')).map(cb => cb.value);
+        if (selected.length === 0) {
+            alert('Please select at least one product to transfer.');
+            return;
+        }
+        productsToTransfer = selected;
+
+        // Hide the bulk controls
+        const controls = document.getElementById('bulk-transfer-controls');
+        if (controls) controls.remove();
+        const bulkBtn = document.getElementById('btn-transfer-wip-owner-bulk');
+        if (bulkBtn) bulkBtn.classList.remove('hidden');
+        isBulkTransferMode = false; // hide checkboxes while modal is open
+        renderNewProductsList();
+
+        // Open the transfer owner modal to pick recipient
+        currentWipId = null; // indicate bulk context
+        document.getElementById('newOwnerSearch').value = '';
+        document.getElementById('newOwnerName').value = '';
+        document.getElementById('owner-search-results').innerHTML = '';
+        document.getElementById('owner-search-results').classList.add('hidden');
+        document.getElementById('transfer-owner-modal').classList.remove('hidden');
+    }
+
 
     // --- RENDER FUNCTIONS ---
     const renderProposalsTable = () => {
@@ -1797,6 +1880,8 @@
                 if (comm.status !== 'Completed') return false;
                 // exclude already-approved ids just in case
                 if (approvedIds.includes(comm.id)) return false;
+                // exclude rejected commercials
+                if (p.rejectedCommercialIds && p.rejectedCommercialIds.includes(comm.id)) return false;
                 // sample must exist and be completed
                 const sample = (p.sample && p.sample.data) ? p.sample.data.find(s => s.id == comm.sampleId) : null;
                 if (!sample || sample.status !== 'Completed') return false;
@@ -1898,6 +1983,7 @@
             // Compute only those commercials that are actually available for approval:
             // - commercial.status must be 'Completed'
             // - commercial id must not already be in approvedCommercialIds
+            // - commercial id must not be in rejectedCommercialIds
             // - linked sample must exist and be 'Completed'
             // - linked vendor must exist and be 'Completed'
             const allCommercials = (p.commercials && p.commercials.data) || [];
@@ -1905,6 +1991,7 @@
             const approvableCommercials = allCommercials.filter(comm => {
                 if (comm.status !== 'Completed') return false;
                 if (approvedIds.includes(comm.id)) return false;
+                if (p.rejectedCommercialIds && p.rejectedCommercialIds.includes(comm.id)) return false;
                 const sample = (p.sample && p.sample.data) ? p.sample.data.find(s => s.id == comm.sampleId) : null;
                 if (!sample || sample.status !== 'Completed') return false;
                 const vendor = (p.vendorIdentification && p.vendorIdentification.data) ? p.vendorIdentification.data.find(v => v.id == sample.vendorId) : null;
@@ -2095,6 +2182,11 @@
             const vendor = p.vendorIdentification.data.find(v => v.id == sample.vendorId);
             // Check if vendor exists and is fully "Completed" (not "WIP")
             if (!vendor || vendor.status !== 'Completed') {
+                return false;
+            }
+            
+            // Check if commercial is rejected
+            if (p.rejectedCommercialIds && p.rejectedCommercialIds.includes(comm.id)) {
                 return false;
             }
             
@@ -2317,12 +2409,7 @@
                 }
             });
 
-            if (summaryData.every(e => e.wip === 0 && e.launched === 0)) {
-                // --- MODIFICATION: Updated colspan ---
-                const totalCols = 4 + stageColumns.length;
-                tbody.innerHTML = `<tr><td colspan="${totalCols}" class="text-center py-10 text-slate-500">No data found for the selected year.</td></tr>`;
-                return;
-            }
+            // Always show filtered employees, even if they have 0 products
 
             summaryData.forEach(emp => {
                 const row = document.createElement('tr');
@@ -2366,10 +2453,7 @@
             // --- MODIFICATION END ---
 
 
-            if (summaryData.every(e => e.wip === 0 && e.launched === 0)) {
-                tbody.innerHTML = `<tr><td colspan="4" class="text-center py-10 text-slate-500">No data found for the selected year.</td></tr>`;
-                return;
-            }
+            // Always show filtered employees, even if they have 0 products
 
             summaryData.forEach(emp => {
                 const row = document.createElement('tr');
@@ -2446,6 +2530,42 @@
         tbodyWip.innerHTML = '';
         tbodyLaunched.innerHTML = '';
         tbodyWithdrawn.innerHTML = '';
+
+        // Manage table header checkbox columns based on bulk mode
+        const wipThead = document.querySelector('#inner-panel-wip table thead');
+        const launchedThead = document.querySelector('#inner-panel-launched table thead');
+        const withdrawnThead = document.querySelector('#inner-panel-withdrawn table thead');
+
+        function ensureCheckboxHeader(thead, idPrefix, isWithdrawnTab = false) {
+            if (!thead) return;
+            const firstRow = thead.querySelector('tr:first-child');
+            const secondRow = thead.querySelectorAll('tr')[1];
+            if (isBulkTransferMode && !isWithdrawnTab) {
+                // insert checkbox th in first row if missing
+                if (!firstRow.querySelector('.bulk-header-cell')) {
+                    const th = document.createElement('th');
+                    th.className = 'px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider bulk-header-cell';
+                    th.innerHTML = `<input type="checkbox" id="select-all-${idPrefix}" class="h-4 w-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500">`;
+                    firstRow.insertBefore(th, firstRow.firstChild);
+                }
+                // insert empty cell in filter row for alignment
+                if (secondRow && !secondRow.querySelector('.bulk-filter-cell')) {
+                    const td = document.createElement('td');
+                    td.className = 'px-6 py-2 bulk-filter-cell';
+                    secondRow.insertBefore(td, secondRow.firstChild);
+                }
+            } else {
+                // remove if present
+                const bh = firstRow && firstRow.querySelector('.bulk-header-cell');
+                if (bh) bh.remove();
+                const bf = secondRow && secondRow.querySelector('.bulk-filter-cell');
+                if (bf) bf.remove();
+            }
+        }
+
+        ensureCheckboxHeader(wipThead, 'wip', false);
+        ensureCheckboxHeader(launchedThead, 'launched', false);
+        ensureCheckboxHeader(withdrawnThead, 'withdrawn', true);
         
         // --- MODIFICATION START ---
         const newProdFyEl = document.getElementById('filter-new-products-fy');
@@ -2485,7 +2605,17 @@
             //     </button>
             // `;
 
-            let html = `
+            let html = '';
+            // If bulk transfer mode, prepend checkbox cell (but not for withdrawn items)
+            const isWithdrawn = extraCols === 'withdrawn';
+            if (isBulkTransferMode && !isWithdrawn) {
+                const checked = productsToTransfer.includes(task.id) ? 'checked' : '';
+                html += `<td class="px-6 py-4 whitespace-nowrap text-sm">
+                            <input type="checkbox" value="${task.id}" class="bulk-transfer-checkbox h-4 w-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500" ${checked}>
+                         </td>`;
+            }
+
+            html += `
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">${productIdHtml}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900 flex items-center">
                     <span>${task.productName}</span>
@@ -2520,7 +2650,9 @@
 
         const attachRowClickListener = (row, task) => {
              row.addEventListener('click', (e) => {
-                if (e.target.tagName !== 'A' && !e.target.closest('button')) {
+                // Ignore clicks on links, buttons and inputs (checkboxes)
+                const tag = e.target.tagName;
+                if (tag !== 'A' && tag !== 'INPUT' && !e.target.closest('button')) {
                     viewWipTaskDetail(task.id, 'newProductsList');
                 }
             });
@@ -2637,7 +2769,8 @@
 
         // Populate WIP table
         if (wipTasksList.length === 0) {
-            tbodyWip.innerHTML = `<tr><td colspan="8" class="text-center py-10 text-slate-500">No WIP products found.</td></tr>`;
+            const colspan = isBulkTransferMode ? 9 : 8;
+            tbodyWip.innerHTML = `<tr><td colspan="${colspan}" class="text-center py-10 text-slate-500">No WIP products found.</td></tr>`;
         } else {
             wipTasksList.forEach(task => {
                 const row = document.createElement('tr');
@@ -2650,7 +2783,8 @@
 
         // Populate Launched table
         if (launchedTasksList.length === 0) {
-            tbodyLaunched.innerHTML = `<tr><td colspan="10" class="text-center py-10 text-slate-500">No launched products found.</td></tr>`;
+            const colspan = isBulkTransferMode ? 11 : 10;
+            tbodyLaunched.innerHTML = `<tr><td colspan="${colspan}" class="text-center py-10 text-slate-500">No launched products found.</td></tr>`;
         } else {
             launchedTasksList.forEach(task => {
                 const row = document.createElement('tr');
@@ -2663,7 +2797,8 @@
 
         // Populate Withdrawn table
         if (withdrawnTasksList.length === 0) {
-            tbodyWithdrawn.innerHTML = `<tr><td colspan="8" class="text-center py-10 text-slate-500">No withdrawn products found.</td></tr>`;
+            const colspan = isBulkTransferMode ? 9 : 8;
+            tbodyWithdrawn.innerHTML = `<tr><td colspan="${colspan}" class="text-center py-10 text-slate-500">No withdrawn products found.</td></tr>`;
         } else {
             withdrawnTasksList.forEach(task => {
                 const row = document.createElement('tr');
@@ -2673,6 +2808,55 @@
                 tbodyWithdrawn.appendChild(row);
             });
         }
+
+        // Wire bulk-transfer checkbox logic (select-all and per-row) for each tab
+        function wireBulkCheckboxes(idPrefix, tbody, isWithdrawnTab = false) {
+            if (!isBulkTransferMode || isWithdrawnTab) return; // Don't wire for withdrawn tab
+            const selectAll = document.getElementById(`select-all-${idPrefix}`);
+            const checkboxes = tbody.querySelectorAll('.bulk-transfer-checkbox');
+            
+            if (selectAll) {
+                // Initialize select-all based on current state
+                const allChecked = checkboxes.length > 0 && Array.from(checkboxes).every(cb => cb.checked);
+                selectAll.checked = allChecked;
+                
+                // Wire the select-all checkbox
+                selectAll.addEventListener('change', (e) => {
+                    const shouldCheck = e.target.checked;
+                    Array.from(checkboxes).forEach(cb => {
+                        cb.checked = shouldCheck;
+                        // Manually update productsToTransfer
+                        const val = cb.value;
+                        if (shouldCheck) {
+                            if (!productsToTransfer.includes(val)) productsToTransfer.push(val);
+                        } else {
+                            productsToTransfer = productsToTransfer.filter(id => id !== val);
+                        }
+                    });
+                }, {once: false});
+            }
+            
+            // Wire per-row checkboxes
+            checkboxes.forEach(cb => {
+                cb.addEventListener('change', () => {
+                    const val = cb.value;
+                    if (cb.checked) {
+                        if (!productsToTransfer.includes(val)) productsToTransfer.push(val);
+                    } else {
+                        productsToTransfer = productsToTransfer.filter(id => id !== val);
+                    }
+                    // Update select-all checkbox state
+                    if (selectAll) {
+                        const allCheckedNow = Array.from(checkboxes).every(c => c.checked);
+                        selectAll.checked = allCheckedNow;
+                    }
+                }, {once: false});
+            });
+        }
+
+        wireBulkCheckboxes('wip', tbodyWip, false);
+        wireBulkCheckboxes('launched', tbodyLaunched, false);
+        wireBulkCheckboxes('withdrawn', tbodyWithdrawn, true);
     };
 
     const renderProposalTasksView = () => {
@@ -2834,14 +3018,15 @@
                 tableHtml = `<table class="min-w-full divide-y divide-slate-200 text-sm">
                             <thead class="bg-slate-50/75"><tr>
                                 ${commercialHeaders.map(h => `<th class="px-4 py-2 text-left font-semibold text-slate-500 uppercase tracking-wider">${h}</th>`).join('')}
-                                <th class="px-4 py-2 text-left font-semibold text-slate-500 uppercase tracking-wider">Status</th>
+                                <th class="px-4 py-2 text-left font-semibold text-slate-500 uppercase tracking-wider">Commercial Status</th>
+                                <th class="px-4 py-2 text-left font-semibold text-slate-500 uppercase tracking-wider">Approval Status</th>
                                 ${showActionColumn ? `<th class="px-4 py-2 text-left font-semibold text-slate-500 uppercase tracking-wider">Action</th>` : ''}
                             </tr></thead>
                             <tbody class="bg-white divide-y divide-slate-200 [&>tr:nth-child(even)]:bg-slate-50/50">
                                 ${stageData.map(row => {
                                     const isRowCompleted = row.status === 'Completed';
                                     // --- MODIFICATION START ---
-                                    const isRowRejected = row.status === 'Rejected'; 
+                                    const isRowRejected = (p.rejectedCommercialIds && p.rejectedCommercialIds.includes(row.id)); 
                                     // --- MODIFICATION END ---
                                     const sampleInfo = p.sample.data.find(s => s.id == row.sampleId);
                                     const sampleText = sampleInfo ? sampleInfo.sampleName : 'N/A';
@@ -2867,6 +3052,7 @@
                                         <td class="px-4 py-2 whitespace-nowrap">${creditDaysText}</td>
                                         <td class="px-4 py-2 whitespace-nowrap">${row.remarks || ''}</td>
                                         <td class="px-4 py-2 whitespace-nowrap"><span class="status-badge ${getStatusClass(row.status)}">${mapStageStatusForDisplay(row.status)}</span></td>
+                                        <td class="px-4 py-2 whitespace-nowrap"><span class="status-badge ${isRowRejected ? 'status-rejected' : (p.approvedCommercialIds && p.approvedCommercialIds.includes(row.id)) ? 'status-approved' : 'status-approval-pending'}">${isRowRejected ? 'Rejected' : (p.approvedCommercialIds && p.approvedCommercialIds.includes(row.id)) ? 'Approved' : 'Approval Pending'}</span></td>
                                         ${showActionColumn ? `
                                             <td class="px-4 py-2 whitespace-nowrap text-right space-x-2">
                                                 ${(p.approvedCommercialIds && p.approvedCommercialIds.includes(row.id)) ? 
@@ -3015,8 +3201,12 @@
 
         const actionsContainer = document.getElementById('wip-detail-actions');
         let actionsHtml = '';
-        if (!task.isCancelled && !isManagerView && task.owner === currentUser.name) { // <-- MODIFICATION: Added owner check
+        if (!task.isCancelled && !isManagerView && task.owner === currentUser.name && status !== 'Launched') { // <-- MODIFICATION: Hide withdraw for launched products
             actionsHtml += `<button class="bg-red-600 text-white font-semibold py-2 px-4 rounded-lg shadow-sm hover:bg-red-700 transition hover:shadow-md" onclick="handleCancelWipTask('${task.id}')">Withdraw Product</button>`;
+        }
+        
+        // Allow transfer ownership for: (1) Employee who is the owner, or (2) Manager (any product, any owner)
+        if (!task.isCancelled && (isManagerView || task.owner === currentUser.name)) {
             actionsHtml += `<button class="bg-slate-500 text-white font-semibold py-2 px-4 rounded-lg shadow-sm hover:bg-slate-600 transition ml-2 hover:shadow-md" onclick="handleTransferWipOwner('${task.id}')">Transfer Ownership</button>`;
         }
         
@@ -3181,11 +3371,11 @@
         pricing: {
             title: 'Pricing Details',
             fields: [
-                { id: 'productCost', label: 'Product Cost (Per Unit)', type: 'number', step: 0.01 },
+                { id: 'productCost', label: 'Product Cost (Per Unit)', type: 'number', step: 0.01, required: true },
                 { id: 'logisticsCost', label: 'Logistics Cost (Per Unit)', type: 'number', step: 0.01 },
                 { id: 'totalLandedCost', label: 'Total Landed Cost (Per Unit)', type: 'text', readonly: true },
-                { id: 'tentativeMRP', label: 'Tentative MRP (Per Unit)', type: 'number', step: 0.01 },
-                { id: 'probableSP', label: 'Probable SP (Per Unit)', type: 'number', step: 0.01 },
+                { id: 'tentativeMRP', label: 'Tentative MRP (Per Unit)', type: 'number', step: 0.01, required: true },
+                { id: 'probableSP', label: 'Probable SP (Per Unit)', type: 'number', step: 0.01, required: true },
                 { id: 'employeeIncentivePercentage', label: 'Employee Incentive %', type: 'number', step: 0.1 },
                 { id: 'margin', label: 'Margin', type: 'text', readonly: true },
                 { id: 'marginPercentage', label: 'Margin %', type: 'text', readonly: true },
@@ -5143,6 +5333,7 @@
         
         const approvableCommercials = p.commercials.data.filter(comm => {
             if (comm.status !== 'Completed') return false;
+            if (p.rejectedCommercialIds && p.rejectedCommercialIds.includes(comm.id)) return false;
             const sample = p.sample.data.find(s => s.id == comm.sampleId && s.status === 'Completed');
             if (!sample) return false;
             const vendor = p.vendorIdentification.data.find(v => v.id == sample.vendorId && v.status === 'Completed');
@@ -5684,6 +5875,9 @@
             // --- MODIFICATION END ---
             renderWipDetail(); // Re-render to show new status and hide buttons
             renderWipStageTableView(); // Re-render table if user is viewing it
+            // Ensure the main lists are updated immediately so New Products shows the updated status
+            try { renderNewProductsList(); } catch (e) { /* ignore if not present */ }
+            try { renderSummaryTable(); } catch (e) { /* ignore if not present */ }
         };
         
         modal.classList.remove('hidden');
@@ -5784,6 +5978,9 @@
             }
             renderWipDetail(); // Re-render to show new status and hide buttons
             renderWipStageTableView(); // Re-render table if user is viewing it
+            // Ensure the main lists are updated immediately so New Products shows the updated status
+            try { renderNewProductsList(); } catch (e) { /* ignore if not present */ }
+            try { renderSummaryTable(); } catch (e) { /* ignore if not present */ }
         };
         
         modal.classList.remove('hidden');
@@ -6120,8 +6317,8 @@
         // --- MODIFICATION START: Add listener for new bulk transfer button ---
         const bulkTransferBtn = document.getElementById('btn-transfer-wip-owner-bulk');
         if (bulkTransferBtn) {
-            bulkTransferBtn.addEventListener('click', openBulkProductTransferModal);
-        } // <-- ADDED THIS CLOSING BRACE
+            bulkTransferBtn.addEventListener('click', startBulkTransferMode);
+        }
         // --- MODIFICATION START: Target the static thead element ---
         document.querySelector('#view-summary thead').addEventListener('click', (e) => {
             // Find the button, whether it's the target or a parent
@@ -6350,22 +6547,27 @@
 
             if (currentWipId) { // 1. Single WIP Task transfer
                 const task = wipTasks.find(t => t.id === currentWipId);
-                if (task) ownersToExclude.add(task.owner);
+                // Only exclude current owner in employee view; manager can transfer to anyone
+                if (task && !isManagerView) ownersToExclude.add(task.owner);
             } else if (currentProposalId) { // 2. Proposal transfer
                 const proposal = proposals.find(p => p.id === currentProposalId);
-                if (proposal) ownersToExclude.add(proposal.owner);
-                // Also exclude owners of any products being transferred with the proposal
-                productsToTransfer.forEach(taskId => {
-                    const task = wipTasks.find(t => t.id === taskId);
-                    if (task) ownersToExclude.add(task.owner);
-                });
+                if (proposal && !isManagerView) ownersToExclude.add(proposal.owner);
+                // Also exclude owners of any products being transferred with the proposal (only in employee view)
+                if (!isManagerView) {
+                    productsToTransfer.forEach(taskId => {
+                        const task = wipTasks.find(t => t.id === taskId);
+                        if (task) ownersToExclude.add(task.owner);
+                    });
+                }
             } else if (productsToTransfer.length > 0) { // 3. Bulk Product transfer
                 // This is a bulk product transfer (no proposal context).
-                // Get owners of all selected products.
-                productsToTransfer.forEach(taskId => {
-                    const task = wipTasks.find(t => t.id === taskId);
-                    if (task) ownersToExclude.add(task.owner);
-                });
+                // In manager view, allow transfer to anyone. In employee view, exclude current owners.
+                if (!isManagerView) {
+                    productsToTransfer.forEach(taskId => {
+                        const task = wipTasks.find(t => t.id === taskId);
+                        if (task) ownersToExclude.add(task.owner);
+                    });
+                }
             }
 
             // --- NEW FIX ---
@@ -6377,15 +6579,14 @@
 
             const results = dummyEmployees.filter(emp => {
                 // --- MODIFICATION START ---
-                // Only apply exclusion logic if we are NOT in Manager View
+                // Apply exclusion logic based on view type and context
                 if (!isManagerView) { 
-                    // --- NEW LOGIC ---
-                    // In employee view, just hide the current user.
+                    // In employee view, hide the current user
                     if (emp.name === currentUser.name) {
                         return false;
                     }
-                    // --- END NEW LOGIC ---
                 }
+                // In manager view, show all employees (no exclusions)
                 // --- MODIFICATION END ---
                 
                 // Standard search logic
@@ -6517,8 +6718,17 @@
                     //     showView('proposalDetail'); // <-- Make sure to show the view // <-- OLD
                     // } // <-- OLD
 
-                    // User request: Always redirect to proposals page after transfer.
-                    showView('proposals'); // Go back to the proposal list
+                    // If this was a proposal-owner-only transfer (no products selected),
+                    // redirect to the proposals list. If products were selected (bulk transfer),
+                    // do NOT redirect — instead refresh product lists and keep the current view.
+                    if (!productsToTransfer || productsToTransfer.length === 0) {
+                        showView('proposals'); // Go back to the proposal list
+                    } else {
+                        // For bulk product transfer, refresh lists and remain on the current page
+                        renderProposalTasksView();
+                        renderSummaryTable();
+                        renderNewProductsList();
+                    }
                     // --- MODIFICATION END ---
                 }
             // --- MODIFICATION START: Added new 'else if' block ---
@@ -6807,12 +7017,18 @@
             return;
         }
 
+        // Initialize rejectedCommercialIds if it doesn't exist
+        if (!p.rejectedCommercialIds) {
+            p.rejectedCommercialIds = [];
+        }
+
         let rejectedCount = 0;
         selectedCommercialInputs.forEach(input => {
             const selectedCommercialId = parseInt(input.value);
             const commercial = p.commercials.data.find(c => c.id === selectedCommercialId);
-            if (commercial && commercial.status !== 'Rejected') {
-                commercial.status = 'Rejected';
+            if (commercial && commercial.status === 'Completed' && !p.rejectedCommercialIds.includes(selectedCommercialId)) {
+                // Keep commercial status as 'Completed', just add to rejectedCommercialIds
+                p.rejectedCommercialIds.push(selectedCommercialId);
                 rejectedCount++;
             }
         });
@@ -6837,12 +7053,18 @@
             return;
         }
 
+        // Initialize rejectedCommercialIds if it doesn't exist
+        if (!p.rejectedCommercialIds) {
+            p.rejectedCommercialIds = [];
+        }
+
         let rejectedCount = 0;
         selectedVariantInputs.forEach(input => {
             const selectedCommercialId = parseInt(input.value);
             const commercial = p.commercials.data.find(c => c.id === selectedCommercialId);
-            if (commercial && commercial.status !== 'Rejected') {
-                commercial.status = 'Rejected';
+            if (commercial && commercial.status === 'Completed' && !p.rejectedCommercialIds.includes(selectedCommercialId)) {
+                // Keep commercial status as 'Completed', just add to rejectedCommercialIds
+                p.rejectedCommercialIds.push(selectedCommercialId);
                 rejectedCount++;
             }
         });
@@ -6873,6 +7095,9 @@
             }
             const vendor = p.vendorIdentification.data.find(v => v.id == sample.vendorId);
             if (!vendor || vendor.status !== 'Completed') {
+                return false;
+            }
+            if (p.rejectedCommercialIds && p.rejectedCommercialIds.includes(comm.id)) {
                 return false;
             }
             return true;

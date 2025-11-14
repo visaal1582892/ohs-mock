@@ -2869,16 +2869,19 @@
                                         <td class="px-4 py-2 whitespace-nowrap"><span class="status-badge ${getStatusClass(row.status)}">${mapStageStatusForDisplay(row.status)}</span></td>
                                         ${showActionColumn ? `
                                             <td class="px-4 py-2 whitespace-nowrap text-right space-x-2">
-                                                
-                                                ${!isRowRejected ? 
-                                                    // Not rejected: Show Edit and Clone
-                                                    `<button class="app-link text-xs font-semibold" onclick="event.stopPropagation(); handleEditStageEntry(${row.id})">Edit</button>
-                                                     <button class="text-blue-600 hover:text-blue-800 text-xs font-semibold" onclick="event.stopPropagation(); handleCloneCommercialEntry(${row.id})">Clone</button>`
-                                                    : 
-                                                    // Is rejected: Show only Clone
+                                                ${(p.approvedCommercialIds && p.approvedCommercialIds.includes(row.id)) ? 
+                                                    // Is approved: Show only Clone (hide Edit)
                                                     `<button class="text-blue-600 hover:text-blue-800 text-xs font-semibold" onclick="event.stopPropagation(); handleCloneCommercialEntry(${row.id})">Clone</button>`
+                                                    :
+                                                    (!isRowRejected ? 
+                                                        // Not rejected: Show Edit and Clone
+                                                        `<button class="app-link text-xs font-semibold" onclick="event.stopPropagation(); handleEditStageEntry(${row.id})">Edit</button>
+                                                         <button class="text-blue-600 hover:text-blue-800 text-xs font-semibold" onclick="event.stopPropagation(); handleCloneCommercialEntry(${row.id})">Clone</button>`
+                                                        : 
+                                                        // Is rejected: Show only Clone
+                                                        `<button class="text-blue-600 hover:text-blue-800 text-xs font-semibold" onclick="event.stopPropagation(); handleCloneCommercialEntry(${row.id})">Clone</button>`
+                                                    )
                                                 }
-                                                
                                             </td>` : ''}
                                     </tr>`;
                                 }).join('')}

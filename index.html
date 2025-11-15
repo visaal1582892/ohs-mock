@@ -3180,7 +3180,7 @@
         document.getElementById('wip-detail-info').innerHTML = `
             <div><dt class="font-medium text-slate-600">Product ID</dt><dd class="text-slate-500">${task.productId || ''}</dd></div>
             <div><dt class="font-medium text-slate-600">Owner</dt><dd class="text-slate-500">${task.owner}</dd></div>
-            <div><dt class="font-medium text-slate-600">Proposal ID</dt><dd><a href="#" onclick="viewProposalInReadOnly('${task.proposalId}', 'wipDetail')" class="app-link">${task.proposalId}</a></dd></div>
+            <div><dt class="font-medium text-slate-600">Proposal ID</dt><dd><a href="#" onclick="viewProposalInReadOnly('${task.proposalId}', '${currentWipDetailBackView}')" class="app-link">${task.proposalId}</a></dd></div>
             <div><dt class="font-medium text-slate-600">Created By</dt><dd class="text-slate-500">${task.createdBy}</dd></div>
         `;
         

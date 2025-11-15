@@ -1348,6 +1348,14 @@
     const indianStatesAndUTs = [ "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal", "Andaman and Nicobar Islands", "Chandigarh", "Dadra and Nagar Haveli and Daman and Diu", "Delhi", "Jammu and Kashmir", "Ladakh", "Lakshadweep", "Puducherry" ];
     const countries = ["Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan", "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria", "Burkina Faso", "Burundi", "Cabo Verde", "Cambodia", "Cameroon", "Canada", "Central African Republic", "Chad", "Chile", "China", "Colombia", "Comoros", "Congo, Democratic Republic of the", "Congo, Republic of the", "Costa Rica", "Cote d'Ivoire", "Croatia", "Cuba", "Cyprus", "Czech Republic", "Denmark", "Djibouti", "Dominica", "Dominican Republic", "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini", "Ethiopia", "Fiji", "Finland", "France", "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Greece", "Grenada", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana", "Haiti", "Honduras", "Hungary", "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy", "Jamaica", "Japan", "Jordan", "Kazakhstan", "Kenya", "Kiribati", "Kosovo", "Kuwait", "Kyrgyzstan", "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein", "Lithuania", "Luxembourg", "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Marshall Islands", "Mauritania", "Mauritius", "Mexico", "Micronesia", "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar (Burma)", "Namibia", "Nauru", "Nepal", "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria", "North Korea", "North Macedonia", "Norway", "Oman", "Pakistan", "Palau", "Palestine", "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Poland", "Portugal", "Qatar", "Romania", "Russia", "Rwanda", "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent and the Grenadines", "Samoa", "San Marino", "Sao Tome and Principe", "Saudi Arabia", "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Slovakia", "Slovenia", "Solomon Islands", "Somalia", "South Africa", "South Korea", "South Sudan", "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden", "Switzerland", "Syria", "Taiwan", "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", "Togo", "Tonga", "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan", "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "United States", "Uruguay", "Uzbekistan", "Vanuatu", "Vatican City", "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"];
     const dummyEmployees = [ { id: 'EMP001', name: 'Alice' }, { id: 'EMP002', name: 'Bob' }, { id: 'EMP003', name: 'Charlie' }, { id: 'EMP004', name: 'David' }, { id: 'EMP005', name: 'Eve F.' }, { id: 'EMP006', name: 'Frank G.' }, ];
+    // Dummy products used for PO selection/search
+    const dummyProducts = [
+        { id: 'PARA-500-T', name: 'Paracetamol 500mg' },
+        { id: 'PARA-650-T', name: 'Paracetamol 650mg' },
+        { id: 'JUICE-1L-APL', name: 'Apple Juice 1L Tetra Pack' },
+        { id: 'BAND-001', name: 'Waterproof Adhesive Bandages' },
+        { id: 'GEL-250', name: 'Aloe Vera Gel 250ml' }
+    ];
     const categoryData = { 'Health & Nutrition': { 'Supplements': ['Vitamins', 'Proteins'], 'Health Foods': ['Organic', 'Gluten-Free'] }, 'Household Needs': { 'Cleaning': ['Floor', 'Kitchen'], 'Disposables': ['Tissues', 'Plates'] }, 'Baby Needs': { 'Diapers': ['Newborn', 'Toddler'], 'Food': ['Formula', 'Cereals'] }, 'OTC and Health Needs': { 'Pain Relief': ['Headache', 'Body Pain'], 'First Aid': ['Bandages', 'Antiseptics'] }, 'Snack Foods': { 'Chips': ['Potato', 'Corn'], 'Cookies': ['Chocolate', 'Oatmeal'] }, 'Jam Honey & Spreads': { 'Jams': ['Fruit', 'Mixed'], 'Honey': ['Natural', 'Flavored'] }, 'Beverage': { 'Juices': ['Apple', 'Orange'], 'Tea': ['Green', 'Black'] }, 'Personal Care': { 'Skin Care': ['Moisturizers', 'Sunscreens'], 'Hair Care': ['Shampoo', 'Conditioner'] } };
 
     // --- INITIAL DATA ---
@@ -3415,9 +3423,9 @@
         poReleased: {
             title: 'PO Released Details',
             fields: [
+                { id: 'productId', label: 'Select Product', type: 'search-select', required: true },
                 { id: 'poId', label: 'Optival PO ID', type: 'text', required: true },
-                { id: 'productId', label: 'Product ID', type: 'text', required: true },
-                { id: 'deliveryDate', label: 'PO Date', type: 'date', required: true }, // <-- MODIFICATION: Label changed
+                { id: 'deliveryDate', label: 'PO Approval Date', type: 'date', required: true }, // <-- MODIFICATION: Label changed
                 { id: 'tentativeLaunchDate', label: 'Tentative Launch Date', type: 'date', readonly: true, required: true },
                 { id: 'unitsOrdered', label: 'Number of units ordered', type: 'number', required: true }
             ]
@@ -3581,8 +3589,13 @@
         let tableHtml = `<table class="min-w-full divide-y divide-slate-200 text-sm"> <thead class="bg-slate-50/75"><tr> ${fieldIds.map(id => {
             // --- MODIFICATION START ---
             let headerText = id.replace(/([A-Z])/g, ' $1').trim();
+            // Custom headers for certain stages
             if (currentStage === 'branding' && id === 'brandLogo') {
                 headerText = 'UPLOADED FILE(BRAND LOGO)';
+            }
+            if (currentStage === 'poReleased') {
+                if (id === 'productId') headerText = 'Product';
+                if (id === 'deliveryDate') headerText = 'PO Approval Date';
             }
             return `<th class="px-4 py-2 text-left font-semibold text-slate-500 uppercase tracking-wider">${headerText}</th>`;
             // --- MODIFICATION END ---
@@ -3837,6 +3850,11 @@
                 inputElement = `<div class="flex items-center space-x-2 mt-1"><input type="file" id="${field.id}" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"/><span class="text-xs text-slate-500">${value ? `Current: ${value}`: ''}</span></div>`;
             } else if (field.type === 'date') {
                 inputElement = `<input type="date" id="${field.id}" value="${formatDateToYYYYMMDD(value)}" class="mt-1 block w-full border-slate-300 rounded-lg shadow-sm ${field.readonly ? 'bg-slate-100' : ''}" ${field.readonly ? 'readonly' : ''}>`;
+            } else if (field.type === 'search-select') {
+                inputElement = `<div class="relative">
+                                <input type="search" id="${field.id}" value="${value || ''}" autocomplete="off" class="mt-1 block w-full border-slate-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                                <div id="${field.id}-results" class="absolute z-20 w-full bg-white border border-slate-300 rounded-md mt-1 max-h-40 overflow-y-auto hidden shadow-lg"></div>
+                            </div>`;
             } else {
                 inputElement = `<input type="${field.type}" id="${field.id}" value="${value || ''}" class="mt-1 block w-full border-slate-300 rounded-lg shadow-sm ${field.readonly ? 'bg-slate-100' : ''}" ${field.readonly ? 'readonly' : ''} ${field.step ? `step="${field.step}"`: ''}>`;
             }
@@ -4008,6 +4026,77 @@
             deliveryDateInput.addEventListener('input', calculateLaunchDate);
             // Run once on modal load to populate if deliveryDate is already set (on edit)
             calculateLaunchDate();
+            
+            // --- NEW: Searchable Select for Product ---
+            const productInput = form.querySelector('#productId');
+            const resultsContainer = form.querySelector('#productId-results');
+            // Other inputs should be disabled until a product is selected
+            const otherInputs = Array.from(form.querySelectorAll('input, select, textarea')).filter(el => el.id !== 'productId' && el.id !== 'productId-results');
+
+            const enableOtherInputs = () => {
+                otherInputs.forEach(el => { el.disabled = false; el.classList.remove('bg-slate-100'); });
+            };
+            const disableOtherInputs = () => {
+                otherInputs.forEach(el => { el.disabled = true; el.classList.add('bg-slate-100'); });
+            };
+
+            // If editing and product already present, keep others enabled
+            if (currentEntryId) {
+                const existing = task.stages.poReleased.data.find(d => d.id === currentEntryId);
+                if (existing && existing.productId) {
+                    productInput.value = existing.productId;
+                    const parts = existing.productId.split(' - ');
+                    if (parts.length > 0) productInput.dataset.selectedId = parts[0];
+                    enableOtherInputs();
+                } else if (task.productId) {
+                    productInput.value = task.productId;
+                    const parts = task.productId.split(' - ');
+                    if (parts.length > 0) productInput.dataset.selectedId = parts[0];
+                    enableOtherInputs();
+                } else {
+                    disableOtherInputs();
+                }
+            } else {
+                // New entry: disable until selection
+                disableOtherInputs();
+            }
+
+            if (productInput) {
+            productInput.addEventListener('input', (e) => {
+                const q = (e.target.value || '').trim().toLowerCase();
+                if (!q) { resultsContainer.classList.add('hidden'); resultsContainer.innerHTML = ''; return; }
+                const matches = dummyProducts.filter(p => p.id.toLowerCase().includes(q) || p.name.toLowerCase().includes(q));
+                if (matches.length === 0) {
+                    resultsContainer.innerHTML = `<div class="p-2 text-sm text-slate-500">No products found</div>`;
+                    resultsContainer.classList.remove('hidden');
+                    return;
+                }
+                resultsContainer.innerHTML = matches.map(p => `<div class="px-3 py-2 hover:bg-slate-100 cursor-pointer" data-id="${p.id}" data-name="${p.name}">${p.id} - ${p.name}</div>`).join('');
+                resultsContainer.classList.remove('hidden');
+            });
+            }
+
+            // Delegate click on results
+            if (resultsContainer) {
+            resultsContainer.addEventListener('click', (ev) => {
+                const target = ev.target.closest('[data-id]');
+                if (!target) return;
+                const id = target.dataset.id;
+                const name = target.dataset.name;
+                productInput.value = `${id} - ${name}`;
+                productInput.dataset.selectedId = id;
+                resultsContainer.classList.add('hidden');
+                enableOtherInputs();
+            });
+            }
+
+            // Hide results when clicking outside
+            document.addEventListener('click', function hideProductResults(ev) {
+                if (!resultsContainer || !productInput) return;
+                if (ev.target === productInput || resultsContainer.contains(ev.target)) return;
+                resultsContainer.classList.add('hidden');
+            });
+            // --- END NEW: Searchable Select ---
         }
 
         // Set WIP stage modal submit label to 'Save' when editing, 'Add' when creating
@@ -4045,6 +4134,15 @@
                         // For other inputs
                         if (input.value && input.value.trim() !== '') {
                             hasValue = true;
+                        }
+                    }
+
+                    // Special validation: For PO Released product selection, ensure selection came from search list
+                    if (currentStage === 'poReleased' && field.id === 'productId') {
+                        const selectedId = input.dataset && input.dataset.selectedId;
+                        const isValidSelection = selectedId && dummyProducts.some(p => p.id === selectedId || `${p.id} - ${p.name}` === input.value);
+                        if (!isValidSelection) {
+                            hasValue = false;
                         }
                     }
 

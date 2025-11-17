@@ -4203,10 +4203,10 @@
         if (currentStage === 'poReleased') {
             formData.status = 'Yes';
             if(formData.productId) {
-                // Extract only the product ID (before the ' - ') from the full selected value
+                // Extract only the product ID (before the ' - ') for the task.productId field
+                // but keep the full "ID - Name" in formData for PO Released table display
                 const productIdOnly = formData.productId.split(' - ')[0];
-                task.productId = productIdOnly;
-                formData.productId = productIdOnly; // Also update formData to store only the ID
+                task.productId = productIdOnly; // Product Details page shows only ID
             }
         } else if (['agreement', 'artWork'].includes(currentStage) && fileUploaded) {
             formData.status = 'Completed';

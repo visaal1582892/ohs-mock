@@ -2315,7 +2315,7 @@
 
                     // Render Commercial ID first (clickable) then Product ID and other columns
                     row.innerHTML = ` 
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${task.commercialId ? `<a href="#" onclick="event.stopPropagation(); currentCommercialId = ${task.commercialId}; currentStage='commercials'; renderStageDetail(); showView('stageDetail');" class="app-link">${task.commercialId}</a>` : ''}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${task.commercialId || ''}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">${task.productId || ''}</td> 
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900 flex items-center">
                             <span>${task.productName}</span>

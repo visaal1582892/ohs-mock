@@ -752,8 +752,8 @@
                                         <tr>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Product Id</th>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Product Name</th>
-                                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Commercial ID</th>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Proposal Id</th>
+                                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Commercial ID</th>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Vendor Name</th>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Owner</th>
@@ -763,6 +763,7 @@
                                             <tr>
                                                 <td class="px-6 py-2"></td>
                                                 <td class="px-6 py-2"><input id="col-filter-wip-productName" type="text" placeholder="Filter product" class="w-full form-input" /></td>
+                                                <td class="px-6 py-2"><input id="col-filter-wip-proposalId" type="text" placeholder="Filter proposal id" class="w-full form-input" /></td>
                                                 <td class="px-6 py-2"></td>
                                                 <td class="px-6 py-2"><input id="col-filter-wip-vendorName" type="text" placeholder="Filter vendor" class="w-full form-input" /></td>
                                                 <td class="px-6 py-2">
@@ -793,8 +794,8 @@
                                         <tr>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Product Id</th>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Product Name</th>
-                                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Commercial ID</th>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Proposal Id</th>
+                                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Commercial ID</th>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Vendor Name</th>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Owner</th>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Created On</th>
@@ -805,7 +806,7 @@
                                         <tr>
                                             <td class="px-6 py-2"></td>
                                             <td class="px-6 py-2"><input id="col-filter-launched-productName" type="text" placeholder="Filter product" class="w-full form-input" /></td>
-                                            <td class="px-6 py-2"></td>
+                                            <td class="px-6 py-2"><input id="col-filter-launched-proposalId" type="text" placeholder="Filter proposal id" class="w-full form-input" /></td>
                                             <td class="px-6 py-2"></td>
                                             <td class="px-6 py-2"><input id="col-filter-launched-vendorName" type="text" placeholder="Filter vendor" class="w-full form-input" /></td>
                                             <td class="px-6 py-2"><input id="col-filter-launched-owner" type="text" placeholder="Filter owner" class="w-full form-input" /></td>
@@ -831,8 +832,8 @@
                                         <tr>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Product Id</th>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Product Name</th>
-                                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Commercial ID</th>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Proposal Id</th>
+                                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Commercial ID</th>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Vendor Name</th>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Owner</th>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Created On</th>
@@ -843,7 +844,7 @@
                                             <tr>
                                                 <td class="px-6 py-2"></td>
                                                 <td class="px-6 py-2"><input id="col-filter-withdrawn-productName" type="text" placeholder="Filter product" class="w-full form-input" /></td>
-                                                <td class="px-6 py-2"></td>
+                                                <td class="px-6 py-2"><input id="col-filter-withdrawn-proposalId" type="text" placeholder="Filter proposal id" class="w-full form-input" /></td>
                                                 <td class="px-6 py-2"></td>
                                                 <td class="px-6 py-2"><input id="col-filter-withdrawn-vendorName" type="text" placeholder="Filter vendor" class="w-full form-input" /></td>
                                                 <td class="px-6 py-2"><input id="col-filter-withdrawn-owner" type="text" placeholder="Filter owner" class="w-full form-input" /></td>
@@ -963,7 +964,7 @@
                             </div>
                             <div id="wip-detail-status" class="mt-2 md:mt-0"></div>
                         </div>
-                        <div id="wip-detail-info" class="mt-4 border-t border-slate-200 pt-4 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm"></div>
+                        <div id="wip-detail-info" class="mt-4 border-t border-slate-200 pt-4 text-sm flex items-center justify-around gap-6 overflow-x-auto whitespace-nowrap"></div>
                         <div id="wip-detail-actions" class="mt-6 border-t border-slate-200 pt-4 flex flex-wrap gap-3"></div>
                     </div>
                     <div class="bg-white p-6 rounded-xl border border-slate-200/80 shadow-sm">
@@ -1322,6 +1323,7 @@
     let isManagerView = false;
     let currentProposalId = null;
     let currentWipId = null;
+    let currentCommercialId = null;
     let currentStage = null;
     let currentEntryId = null;
     let confirmationAction = null;
@@ -2268,16 +2270,16 @@
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-slate-200">
                             <thead class="bg-slate-50/75">
-                                <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Product ID</th>
-                                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Product Name</th>
-                                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Commercial ID</th>
-                                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Vendor</th>
-                                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
-                                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Owner</th>
-                                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Created On</th>
-                                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Created by</th>
-                                </tr>
+                                                <tr>
+                                                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Commercial ID</th>
+                                                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Product ID</th>
+                                                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Product Name</th>
+                                                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Vendor</th>
+                                                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
+                                                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Owner</th>
+                                                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Created On</th>
+                                                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Created by</th>
+                                                </tr>
                             </thead>
                             <tbody id="approved-proposal-products-tbody" class="bg-white divide-y divide-slate-200 [&>tr:nth-child(even)]:bg-slate-50/50">
                             </tbody>
@@ -2311,12 +2313,13 @@
                     //     </button>
                     // `;
 
+                    // Render Commercial ID first (clickable) then Product ID and other columns
                     row.innerHTML = ` 
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${task.commercialId ? `<a href="#" onclick="event.stopPropagation(); currentCommercialId = ${task.commercialId}; currentStage='commercials'; renderStageDetail(); showView('stageDetail');" class="app-link">${task.commercialId}</a>` : ''}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">${task.productId || ''}</td> 
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900 flex items-center">
                             <span>${task.productName}</span>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${task.commercialId || ''}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${vendorNameHtml}</td> 
                         <td class="px-6 py-4 whitespace-nowrap text-sm"><span class="status-badge ${getStatusClass(status)}">${status}</span></td> 
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${task.owner}</td> 
@@ -2648,8 +2651,8 @@
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900 flex items-center">
                     <span>${task.productName}</span>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${task.commercialId || ''}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${proposalIdHtml}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${task.commercialId || ''}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${vendorNameHtml}</td>
                 ${status!=='Launched' && status!=='Withdrawn' ?
                 `<td class="px-6 py-4 whitespace-nowrap text-sm"><span class="status-badge ${getStatusClass(status)}">${status}</span></td>`:''}
@@ -2706,6 +2709,7 @@
 
         // --- WIP-specific column filters (apply only to WIP tab) ---
         const fProductName = document.getElementById('col-filter-wip-productName') ? document.getElementById('col-filter-wip-productName').value.trim().toLowerCase() : '';
+        const fProposalId = document.getElementById('col-filter-wip-proposalId') ? document.getElementById('col-filter-wip-proposalId').value.trim().toLowerCase() : '';
         const fVendorName = document.getElementById('col-filter-wip-vendorName') ? document.getElementById('col-filter-wip-vendorName').value.trim().toLowerCase() : '';
         const fStatus = document.getElementById('col-filter-wip-status') ? document.getElementById('col-filter-wip-status').value : '';
         const fOwner = document.getElementById('col-filter-wip-owner') ? document.getElementById('col-filter-wip-owner').value.trim().toLowerCase() : '';
@@ -2721,9 +2725,10 @@
 
         const fCreatedOnFormatted = formatDateInputToDDMMYYYY(fCreatedOn);
 
-        if (fProductName || fVendorName || fStatus || fOwner || fCreatedOnFormatted || fCreatedBy) {
+        if (fProductName || fProposalId || fVendorName || fStatus || fOwner || fCreatedOnFormatted || fCreatedBy) {
             wipTasksList = wipTasksList.filter(task => {
                 if (fProductName && !((task.productName || '').toLowerCase().includes(fProductName))) return false;
+                if (fProposalId && !(String(task.proposalId || '').toLowerCase().includes(fProposalId))) return false;
                 if (fVendorName && !((task.vendorName || '').toLowerCase().includes(fVendorName))) return false;
                 const status = calculateWipStatus(task);
                 if (fStatus && fStatus !== '') {
@@ -2748,6 +2753,7 @@
 
         // --- Launched-specific column filters (per-tab filters) ---
         const fLProductName = document.getElementById('col-filter-launched-productName') ? document.getElementById('col-filter-launched-productName').value.trim().toLowerCase() : '';
+        const fLProposalId = document.getElementById('col-filter-launched-proposalId') ? document.getElementById('col-filter-launched-proposalId').value.trim().toLowerCase() : '';
         const fLVendorName = document.getElementById('col-filter-launched-vendorName') ? document.getElementById('col-filter-launched-vendorName').value.trim().toLowerCase() : '';
 
         const fLOwner = document.getElementById('col-filter-launched-owner') ? document.getElementById('col-filter-launched-owner').value.trim().toLowerCase() : '';
@@ -2758,9 +2764,10 @@
 
         const fLCreatedOnFormatted = (function(iso){ if(!iso) return ''; const parts=iso.split('-'); if(parts.length!==3) return ''; return `${parts[2]}-${parts[1]}-${parts[0]}`; })(fLCreatedOn);
 
-        if (fLProductName || fLVendorName || fLOwner || fLCreatedOnFormatted || fLCreatedBy || fLLaunchedOn || fLLaunchedBy) {
+        if (fLProductName || fLProposalId || fLVendorName || fLOwner || fLCreatedOnFormatted || fLCreatedBy || fLLaunchedOn || fLLaunchedBy) {
             launchedTasksList = launchedTasksList.filter(task => {
                 if (fLProductName && !((task.productName || '').toLowerCase().includes(fLProductName))) return false;
+                if (fLProposalId && !(String(task.proposalId || '').toLowerCase().includes(fLProposalId))) return false;
                 if (fLVendorName && !((task.vendorName || '').toLowerCase().includes(fLVendorName))) return false;
                 if (fLOwner && !((task.owner || '').toLowerCase().includes(fLOwner))) return false;
                 if (fLCreatedOnFormatted && (parseDateForSorting(task.createdDate).getTime() !== parseDateForSorting(fLCreatedOnFormatted).getTime())) return false;
@@ -2773,6 +2780,7 @@
 
         // --- Withdrawn-specific column filters (per-tab filters) ---
         const fWProductName = document.getElementById('col-filter-withdrawn-productName') ? document.getElementById('col-filter-withdrawn-productName').value.trim().toLowerCase() : '';
+        const fWProposalId = document.getElementById('col-filter-withdrawn-proposalId') ? document.getElementById('col-filter-withdrawn-proposalId').value.trim().toLowerCase() : '';
         const fWVendorName = document.getElementById('col-filter-withdrawn-vendorName') ? document.getElementById('col-filter-withdrawn-vendorName').value.trim().toLowerCase() : '';
 
         const fWOwner = document.getElementById('col-filter-withdrawn-owner') ? document.getElementById('col-filter-withdrawn-owner').value.trim().toLowerCase() : '';
@@ -2783,9 +2791,10 @@
 
         const fWCreatedOnFormatted = (function(iso){ if(!iso) return ''; const parts=iso.split('-'); if(parts.length!==3) return ''; return `${parts[2]}-${parts[1]}-${parts[0]}`; })(fWCreatedOn);
 
-        if (fWProductName || fWVendorName || fWOwner || fWCreatedOnFormatted || fWCreatedBy || fWWithdrawnOn || fWWithdrawnBy) {
+        if (fWProductName || fWProposalId || fWVendorName || fWOwner || fWCreatedOnFormatted || fWCreatedBy || fWWithdrawnOn || fWWithdrawnBy) {
             withdrawnTasksList = withdrawnTasksList.filter(task => {
                 if (fWProductName && !((task.productName || '').toLowerCase().includes(fWProductName))) return false;
+                if (fWProposalId && !(String(task.proposalId || '').toLowerCase().includes(fWProposalId))) return false;
                 if (fWVendorName && !((task.vendorName || '').toLowerCase().includes(fWVendorName))) return false;
                 if (fWOwner && !((task.owner || '').toLowerCase().includes(fWOwner))) return false;
                 if (fWCreatedOnFormatted && (parseDateForSorting(task.createdDate).getTime() !== parseDateForSorting(fWCreatedOnFormatted).getTime())) return false;
@@ -2989,6 +2998,20 @@
         let tableHtml = `<table class="min-w-full divide-y divide-slate-200 text-sm"> <thead class="bg-slate-50/75"><tr> ${headers.map(h => `<th class="px-4 py-2 text-left font-semibold text-slate-500 uppercase tracking-wider">${h}</th>`).join('')} <th class="px-4 py-2 text-left font-semibold text-slate-500 uppercase tracking-wider">Status</th> ${showActionColumn ? `<th class="px-4 py-2 text-left font-semibold text-slate-500 uppercase tracking-wider">Action</th>` : ''} </tr></thead> <tbody class="bg-white divide-y divide-slate-200 [&>tr:nth-child(even)]:bg-slate-50/50"> ${stageData.map(row => { const isRowCompleted = row.status === 'Completed'; const location = row.vendorType === 'International' ? row.vendorCountry : row.vendorState; const pocNameHtml = row.pocs?.map(p => p.pocName || '').join('<hr class="my-1 border-slate-100">') || ''; const pocMobileHtml = row.pocs?.map(p => p.pocMobileNo || '').join('<hr class="my-1 border-slate-100">') || ''; const pocEmailHtml = row.pocs?.map(p => p.email || '').join('<hr class="my-1 border-slate-100">') || ''; const pocRoleHtml = row.pocs?.map(p => p.pocRole || '').join('<hr class="my-1 border-slate-100">') || ''; return `<tr> <td class="px-4 py-2 align-top whitespace-nowrap">${row.vendorName || ''}</td> <td class="px-4 py-2 align-top whitespace-nowrap">${row.vendorType || ''}</td> <td class="px-4 py-2 align-top whitespace-nowrap">${location || ''}</td> <td class="px-4 py-2 align-top">${pocNameHtml}</td> <td class="px-4 py-2 align-top">${pocMobileHtml}</td> <td class="px-4 py-2 align-top">${pocEmailHtml}</td> <td class="px-4 py-2 align-top">${pocRoleHtml}</td> <td class="px-4 py-2 align-top whitespace-nowrap">${row.categoryCompositionExpertise || ''}</td> <td class="px-4 py-2 align-top whitespace-nowrap">${row.keyPartnersBrands || ''}</td> <td class="px-4 py-2 align-top whitespace-nowrap">${row.gstNo || ''}</td> <td class="px-4 py-2 align-top whitespace-nowrap">${row.plantVisit || ''}</td> <td class="px-4 py-2 align-top whitespace-normal">${row.remarks || ''}</td> <td class="px-4 py-2 align-top whitespace-nowrap"><span class="status-badge ${getStatusClass(row.status)}">${mapStageStatusForDisplay(row.status)}</span></td> ${showActionColumn ? ` <td class="px-4 py-2 align-top whitespace-nowrap text-right space-x-2"> <button class="app-link text-xs font-semibold ${isRowCompleted ? 'hidden' : ''}" onclick="handleEditStageEntry(${row.id})">Edit</button> <button class="bg-green-500 text-white text-xs font-semibold py-1 px-2 rounded-md hover:bg-green-600 transition ${isRowCompleted ? 'hidden' : ''}" onclick="handleSaveEntryStatus(${row.id}, 'Completed')">Completed</button> </td>` : ''} </tr>`; }).join('')} </tbody></table>`;
         
         contentContainer.innerHTML = tableHtml;
+        // If user navigated here by clicking a commercial link, scroll and briefly highlight that commercial row
+        if (currentStage === 'commercials' && currentCommercialId) {
+            setTimeout(() => {
+                const elRow = document.getElementById(`commercial-row-${currentCommercialId}`);
+                if (elRow) {
+                    try { elRow.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch(e){}
+                    const origBg = elRow.style.backgroundColor;
+                    elRow.style.backgroundColor = '#eff6ff'; // light highlight
+                    setTimeout(() => { elRow.style.backgroundColor = origBg; }, 1800);
+                }
+                // clear the marker
+                currentCommercialId = null;
+            }, 60);
+        }
     }
 
     const renderStageDetail = () => {
@@ -3060,7 +3083,7 @@
                                     const sampleInfo = p.sample.data.find(s => s.id == row.sampleId);
                                     const sampleText = sampleInfo ? sampleInfo.sampleName : 'N/A';
                                     const creditDaysText = row.balancePaymentType === 'After Dispatch' ? (row.creditDays || '0') : 'N/A';
-                                    return `<tr>
+                                    return `<tr id="commercial-row-${row.id}">
                                         <td class="px-4 py-2 whitespace-nowrap">${row.id || ''}</td>
                                         <td class="px-4 py-2 whitespace-nowrap">${row.vendorName || ''}</td>
                                         <td class="px-4 py-2 whitespace-nowrap">${sampleText}</td>
@@ -3198,10 +3221,26 @@
         document.getElementById('wip-detail-vendor').innerText = `Vendor: ${task.vendorName}`;
         document.getElementById('wip-detail-status').innerHTML = `<span class="status-badge ${getStatusClass(status)}">${status}</span>`;
         document.getElementById('wip-detail-info').innerHTML = `
-            <div><dt class="font-medium text-slate-600">Product ID</dt><dd class="text-slate-500">${task.productId || ''}</dd></div>
-            <div><dt class="font-medium text-slate-600">Owner</dt><dd class="text-slate-500">${task.owner}</dd></div>
-            <div><dt class="font-medium text-slate-600">Proposal ID</dt><dd><a href="#" onclick="viewProposalInReadOnly('${task.proposalId}', '${currentWipDetailBackView}')" class="app-link">${task.proposalId}</a></dd></div>
-            <div><dt class="font-medium text-slate-600">Created By</dt><dd class="text-slate-500">${task.createdBy}</dd></div>
+            <div class="text-center">
+                <dt class="font-medium text-slate-600">Product ID</dt>
+                <dd class="text-slate-500">${task.productId || ''}</dd>
+            </div>
+            <div class="text-center">
+                <dt class="font-medium text-slate-600">Owner</dt>
+                <dd class="text-slate-500">${task.owner}</dd>
+            </div>
+            <div class="text-center">
+                <dt class="font-medium text-slate-600">Proposal ID</dt>
+                <dd><a href="#" onclick="viewProposalInReadOnly('${task.proposalId}', '${currentWipDetailBackView}')" class="app-link">${task.proposalId}</a></dd>
+            </div>
+            <div class="text-center">
+                <dt class="font-medium text-slate-600">Commercial ID</dt>
+                <dd class="text-slate-500">${task.commercialId || ''}</dd>
+            </div>
+            <div class="text-center">
+                <dt class="font-medium text-slate-600">Created By</dt>
+                <dd class="text-slate-500">${task.createdBy}</dd>
+            </div>
         `;
         
         const backBtn = document.querySelector('#view-wip-detail .back-to-proposal-tasks-btn');
@@ -6238,8 +6277,8 @@
                                         <th class="px-4 py-2 text-left font-semibold text-slate-500 uppercase tracking-wider">Emp Name</th>
                                         <th class="px-4 py-2 text-left font-semibold text-slate-500 uppercase tracking-wider">Product ID</th>
                                         <th class="px-4 py-2 text-left font-semibold text-slate-500 uppercase tracking-wider">Product Name</th>
-                                        <th class="px-4 py-2 text-left font-semibold text-slate-500 uppercase tracking-wider">Commercial ID</th>
                                         <th class="px-4 py-2 text-left font-semibold text-slate-500 uppercase tracking-wider">Proposal ID</th>
+                                        <th class="px-4 py-2 text-left font-semibold text-slate-500 uppercase tracking-wider">Commercial ID</th>
                                         <th class="px-4 py-2 text-left font-semibold text-slate-500 uppercase tracking-wider">Vendor Name</th>
                                         <th class="px-4 py-2 text-left font-semibold text-slate-500 uppercase tracking-wider">Created On</th>
                                     </tr>
@@ -6261,8 +6300,8 @@
                                 <td class="px-4 py-2">${employee.name}</td>
                                 <td class="px-4 py-2">${productIdHtml}</td>
                                 <td class="px-4 py-2">${productNameHtml}</td>
-                                <td class="px-4 py-2">${task.commercialId || ''}</td>
                                 <td class="px-4 py-2">${proposalIdHtml}</td>
+                                <td class="px-4 py-2">${task.commercialId || ''}</td>
                                 <td class="px-4 py-2">${vendorNameHtml}</td>
                                 <td class="px-4 py-2">${task.createdDate}</td>
                               </tr>`;
@@ -6589,7 +6628,7 @@
         }
 
         function clearNewProductsFilters() {
-            const ids = ['col-filter-wip-productName','col-filter-wip-vendorName','col-filter-wip-status','col-filter-wip-owner','col-filter-wip-createdOn','col-filter-wip-createdBy','col-filter-launched-productName','col-filter-launched-vendorName','col-filter-launched-owner','col-filter-launched-createdOn','col-filter-launched-createdBy','col-filter-launched-launchedOn','col-filter-launched-launchedBy','col-filter-withdrawn-productName','col-filter-withdrawn-vendorName','col-filter-withdrawn-owner','col-filter-withdrawn-createdOn','col-filter-withdrawn-createdBy','col-filter-withdrawn-withdrawnOn','col-filter-withdrawn-withdrawnBy'];
+            const ids = ['col-filter-wip-productName','col-filter-wip-proposalId','col-filter-wip-vendorName','col-filter-wip-status','col-filter-wip-owner','col-filter-wip-createdOn','col-filter-wip-createdBy','col-filter-launched-productName','col-filter-launched-proposalId','col-filter-launched-vendorName','col-filter-launched-owner','col-filter-launched-createdOn','col-filter-launched-createdBy','col-filter-launched-launchedOn','col-filter-launched-launchedBy','col-filter-withdrawn-productName','col-filter-withdrawn-proposalId','col-filter-withdrawn-vendorName','col-filter-withdrawn-owner','col-filter-withdrawn-createdOn','col-filter-withdrawn-createdBy','col-filter-withdrawn-withdrawnOn','col-filter-withdrawn-withdrawnBy'];
             ids.forEach(id => { const el = document.getElementById(id); if (!el) return; 
                 if (el.tagName.toLowerCase() === 'input' || el.tagName.toLowerCase() === 'select') {
                     if (el.type === 'date') el.value = '';
@@ -6647,7 +6686,7 @@
         // --- END: Inner Tab Listeners for New Products List ---
 
         // --- Column filter listeners for New Products (WIP / Launched / Withdrawn) ---
-        const newProductsFilterIds = ['col-filter-wip-productName','col-filter-wip-vendorName','col-filter-wip-status','col-filter-wip-owner','col-filter-wip-createdOn','col-filter-wip-createdBy','col-filter-launched-productName','col-filter-launched-vendorName','col-filter-launched-owner','col-filter-launched-createdOn','col-filter-launched-createdBy','col-filter-launched-launchedOn','col-filter-launched-launchedBy','col-filter-withdrawn-productName','col-filter-withdrawn-vendorName','col-filter-withdrawn-owner','col-filter-withdrawn-createdOn','col-filter-withdrawn-createdBy','col-filter-withdrawn-withdrawnOn','col-filter-withdrawn-withdrawnBy','filter-new-products-fy'];
+        const newProductsFilterIds = ['col-filter-wip-productName','col-filter-wip-proposalId','col-filter-wip-vendorName','col-filter-wip-status','col-filter-wip-owner','col-filter-wip-createdOn','col-filter-wip-createdBy','col-filter-launched-productName','col-filter-launched-proposalId','col-filter-launched-vendorName','col-filter-launched-owner','col-filter-launched-createdOn','col-filter-launched-createdBy','col-filter-launched-launchedOn','col-filter-launched-launchedBy','col-filter-withdrawn-productName','col-filter-withdrawn-proposalId','col-filter-withdrawn-vendorName','col-filter-withdrawn-owner','col-filter-withdrawn-createdOn','col-filter-withdrawn-createdBy','col-filter-withdrawn-withdrawnOn','col-filter-withdrawn-withdrawnBy','filter-new-products-fy'];
         newProductsFilterIds.forEach(id => {
             const el = document.getElementById(id);
             if (!el) return;
@@ -7762,6 +7801,11 @@ function updateGrnCardStatus(status) {
                         if (title === 'Agreement (proposal) Details' && key === 'upload') {
                             displayKey = 'Uploaded File';
                         }
+
+                        // Rule 3: For Commercials Details, show 'Sample Name' instead of 'Sample Id'
+                        if (title === 'Commercials Details' && key === 'sampleId') {
+                            displayKey = 'Sample Name';
+                        }
                         
                         // Check if key should be displayed
                         if (key !== 'id' && key !== 'vendorId' && key !== 'status' && key !== 'vendorName' && !skipKey) {
@@ -7771,11 +7815,14 @@ function updateGrnCardStatus(status) {
                             if (key === 'pocs' && Array.isArray(value)) {
                                 displayValue = value.map(poc => `${poc.pocName} (${poc.pocRole || 'N/A'})`).join(', ');
                             }
-                            // --- START MODIFICATION ---
+                            // Show sample name for commercials instead of sample id
+                            else if (title === 'Commercials Details' && key === 'sampleId') {
+                                const sampleObj = p && p.sample && p.sample.data ? p.sample.data.find(s => s.id == value) : null;
+                                displayValue = sampleObj ? (sampleObj.sampleName || sampleObj.name || value) : value;
+                            }
                             else if ((key === 'upload' || key === 'uploadedDocuments' || key === 'brandLogo') && value) {
                                 displayValue = `<a href="data:text/plain;charset=utf-8,${encodeURIComponent('This is a dummy file for ' + value)}" download="${value}" class="app-link font-medium">${value}</a>`;
                             }
-                            // --- END MODIFICATION ---
                             
                             // --- MODIFICATION ---
                             // Use displayKey instead of key

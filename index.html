@@ -752,6 +752,7 @@
                                         <tr>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Product Id</th>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Product Name</th>
+                                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Commercial ID</th>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Proposal Id</th>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Vendor Name</th>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
@@ -792,6 +793,7 @@
                                         <tr>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Product Id</th>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Product Name</th>
+                                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Commercial ID</th>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Proposal Id</th>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Vendor Name</th>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Owner</th>
@@ -803,6 +805,7 @@
                                         <tr>
                                             <td class="px-6 py-2"></td>
                                             <td class="px-6 py-2"><input id="col-filter-launched-productName" type="text" placeholder="Filter product" class="w-full form-input" /></td>
+                                            <td class="px-6 py-2"></td>
                                             <td class="px-6 py-2"></td>
                                             <td class="px-6 py-2"><input id="col-filter-launched-vendorName" type="text" placeholder="Filter vendor" class="w-full form-input" /></td>
                                             <td class="px-6 py-2"><input id="col-filter-launched-owner" type="text" placeholder="Filter owner" class="w-full form-input" /></td>
@@ -828,6 +831,7 @@
                                         <tr>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Product Id</th>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Product Name</th>
+                                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Commercial ID</th>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Proposal Id</th>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Vendor Name</th>
                                             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Owner</th>
@@ -839,6 +843,7 @@
                                             <tr>
                                                 <td class="px-6 py-2"></td>
                                                 <td class="px-6 py-2"><input id="col-filter-withdrawn-productName" type="text" placeholder="Filter product" class="w-full form-input" /></td>
+                                                <td class="px-6 py-2"></td>
                                                 <td class="px-6 py-2"></td>
                                                 <td class="px-6 py-2"><input id="col-filter-withdrawn-vendorName" type="text" placeholder="Filter vendor" class="w-full form-input" /></td>
                                                 <td class="px-6 py-2"><input id="col-filter-withdrawn-owner" type="text" placeholder="Filter owner" class="w-full form-input" /></td>
@@ -2266,6 +2271,7 @@
                                 <tr>
                                     <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Product ID</th>
                                     <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Product Name</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Commercial ID</th>
                                     <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Vendor</th>
                                     <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
                                     <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Owner</th>
@@ -2283,7 +2289,7 @@
 
             const tbody = document.getElementById('approved-proposal-products-tbody');
             if (tasksForProposal.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-10 text-slate-500">No products added for this proposal yet.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-10 text-slate-500">No products added for this proposal yet.</td></tr>`;
             } else {
                 tasksForProposal.forEach(task => {
                     const status = calculateWipStatus(task); 
@@ -2310,12 +2316,14 @@
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900 flex items-center">
                             <span>${task.productName}</span>
                         </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${task.commercialId || ''}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${vendorNameHtml}</td> 
                         <td class="px-6 py-4 whitespace-nowrap text-sm"><span class="status-badge ${getStatusClass(status)}">${status}</span></td> 
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${task.owner}</td> 
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${task.createdDate}</td> 
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${task.createdBy}</td> 
-                    `; 
+                    `;
+ 
                     
                     row.style.cursor = 'pointer';
                     row.addEventListener('click', (e) => {
@@ -2640,6 +2648,7 @@
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900 flex items-center">
                     <span>${task.productName}</span>
                 </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${task.commercialId || ''}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${proposalIdHtml}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${vendorNameHtml}</td>
                 ${status!=='Launched' && status!=='Withdrawn' ?
@@ -2789,7 +2798,7 @@
 
         // Populate WIP table
         if (wipTasksList.length === 0) {
-            const colspan = isBulkTransferMode ? 9 : 8;
+            const colspan = isBulkTransferMode ? 10 : 9;
             tbodyWip.innerHTML = `<tr><td colspan="${colspan}" class="text-center py-10 text-slate-500">No WIP products found.</td></tr>`;
         } else {
             wipTasksList.forEach(task => {
@@ -2817,7 +2826,7 @@
 
         // Populate Withdrawn table
         if (withdrawnTasksList.length === 0) {
-            const colspan = isBulkTransferMode ? 9 : 8;
+            const colspan = isBulkTransferMode ? 11 : 10;
             tbodyWithdrawn.innerHTML = `<tr><td colspan="${colspan}" class="text-center py-10 text-slate-500">No withdrawn products found.</td></tr>`;
         } else {
             withdrawnTasksList.forEach(task => {
@@ -3033,7 +3042,7 @@
         let tableHtml = `<p class="text-slate-500">No data added yet.</p>`;
         if (stageData.length > 0) {
             if (currentStage === 'commercials') {
-                const commercialHeaders = ['Vendor Name', 'Sample', 'Product Variant', 'Product Cost (Per Unit)', 'Logistics Cost (Per Unit)', 'Total Landed Cost (Per Unit)', 'Employee Incentive %', 'Probable SP (Per Unit)', 'Margin', 'Margin %', 'Tentative MRP (Per Unit)', 'MOQ', 'GST %', 'Expected Total Investment', 'Lead Time', 'Advance %', 'Balance Payment', 'Credit Days', 'Remarks'];
+                const commercialHeaders = ['Commercial Id', 'Vendor Name', 'Sample', 'Product Variant', 'Product Cost (Per Unit)', 'Logistics Cost (Per Unit)', 'Total Landed Cost (Per Unit)', 'Employee Incentive %', 'Probable SP (Per Unit)', 'Margin', 'Margin %', 'Tentative MRP (Per Unit)', 'MOQ', 'GST %', 'Expected Total Investment', 'Lead Time', 'Advance %', 'Balance Payment', 'Credit Days', 'Remarks'];
                 const showActionColumn = !isManagerView && !p.isRejected && !p.isWithdrawn && p.owner === currentUser.name; // <-- MODIFICATION: Added owner check
                 tableHtml = `<table class="min-w-full divide-y divide-slate-200 text-sm">
                             <thead class="bg-slate-50/75"><tr>
@@ -3052,6 +3061,7 @@
                                     const sampleText = sampleInfo ? sampleInfo.sampleName : 'N/A';
                                     const creditDaysText = row.balancePaymentType === 'After Dispatch' ? (row.creditDays || '0') : 'N/A';
                                     return `<tr>
+                                        <td class="px-4 py-2 whitespace-nowrap">${row.id || ''}</td>
                                         <td class="px-4 py-2 whitespace-nowrap">${row.vendorName || ''}</td>
                                         <td class="px-4 py-2 whitespace-nowrap">${sampleText}</td>
                                         <td class="px-4 py-2 whitespace-nowrap">${row.productVariant || ''}</td>
@@ -6228,6 +6238,7 @@
                                         <th class="px-4 py-2 text-left font-semibold text-slate-500 uppercase tracking-wider">Emp Name</th>
                                         <th class="px-4 py-2 text-left font-semibold text-slate-500 uppercase tracking-wider">Product ID</th>
                                         <th class="px-4 py-2 text-left font-semibold text-slate-500 uppercase tracking-wider">Product Name</th>
+                                        <th class="px-4 py-2 text-left font-semibold text-slate-500 uppercase tracking-wider">Commercial ID</th>
                                         <th class="px-4 py-2 text-left font-semibold text-slate-500 uppercase tracking-wider">Proposal ID</th>
                                         <th class="px-4 py-2 text-left font-semibold text-slate-500 uppercase tracking-wider">Vendor Name</th>
                                         <th class="px-4 py-2 text-left font-semibold text-slate-500 uppercase tracking-wider">Created On</th>
@@ -6250,6 +6261,7 @@
                                 <td class="px-4 py-2">${employee.name}</td>
                                 <td class="px-4 py-2">${productIdHtml}</td>
                                 <td class="px-4 py-2">${productNameHtml}</td>
+                                <td class="px-4 py-2">${task.commercialId || ''}</td>
                                 <td class="px-4 py-2">${proposalIdHtml}</td>
                                 <td class="px-4 py-2">${vendorNameHtml}</td>
                                 <td class="px-4 py-2">${task.createdDate}</td>
@@ -6258,6 +6270,7 @@
             tableHtml += '</tbody></table>';
             content.innerHTML = tableHtml;
         }
+
         
         modal.classList.remove('hidden');
     }

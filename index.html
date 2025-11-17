@@ -1477,7 +1477,7 @@
             id: 'WIP-002',
             proposalId: 'P2025-002',
             commercialId: 6, // <-- ***** ADD THIS *****
-            productId: '', productName: '1 liter tetra pack of fresh apple juice, no added sugar.-1L Tetra Pack', vendorName: 'Fresh Juices Inc.', vendorId: 4, owner: 'Bob', createdBy: 'Bob',
+            productId: 'FY25-PHA-002', productName: '1 liter tetra pack of fresh apple juice, no added sugar.-1L Tetra Pack', vendorName: 'Fresh Juices Inc.', vendorId: 4, owner: 'Bob', createdBy: 'Bob',
             createdDate: '06-07-2025', isCancelled: false,
             stages: {
                 agreement: { data: [{id: 8, upload: 'juice_agreement.pdf', status: 'Completed'}] },
@@ -1496,7 +1496,7 @@
             id: 'WIP-005',
             proposalId: 'P2025-001',
             commercialId: 16, // <-- ***** ADD THIS *****
-            productId: '', productName: 'Standard 500mg Paracetamol tablets for fever and pain relief.-650mg', vendorName: 'Global Pharma', vendorId: 1, owner: 'Alice', createdBy: 'Alice',
+            productId: 'FY25-PHA-001', productName: 'Standard 500mg Paracetamol tablets for fever and pain relief.-650mg', vendorName: 'Global Pharma', vendorId: 1, owner: 'Alice', createdBy: 'Alice',
             createdDate: '08-07-2025', isCancelled: false,
             stages: {
                 agreement: { data: [] }, artWork: { data: [] }, pricing: { data: [] }, branding: { data: [] }, vendorKYC: { data: [] },
@@ -1674,7 +1674,8 @@
         // 1. Get all transferrable tasks (exclude Withdrawn and Launched)
         let transferrableTasks = wipTasks.filter(task => {
             const status = calculateWipStatus(task);
-            return status !== 'Withdrawn' && status !== 'Launched';
+            // Only include WIP and Approval Pending products, exclude Withdrawn and Launched
+            return (status === 'WIP' || status === 'Approval Pending');
         });
 
         // 2. Filter by owner if in Employee view
@@ -2582,7 +2583,7 @@
         }
 
         ensureCheckboxHeader(wipThead, 'wip', false);
-        ensureCheckboxHeader(launchedThead, 'launched', false);
+        // ensureCheckboxHeader(launchedThead, 'launched', false);
         ensureCheckboxHeader(withdrawnThead, 'withdrawn', true);
         
         // --- MODIFICATION START ---
@@ -2624,9 +2625,10 @@
             // `;
 
             let html = '';
-            // If bulk transfer mode, prepend checkbox cell (but not for withdrawn items)
+            // If bulk transfer mode, prepend checkbox cell (but not for withdrawn or launched items)
             const isWithdrawn = extraCols === 'withdrawn';
-            if (isBulkTransferMode && !isWithdrawn) {
+            const isLaunched = extraCols === 'launched';
+            if (isBulkTransferMode && !isWithdrawn && !isLaunched) {
                 const checked = productsToTransfer.includes(task.id) ? 'checked' : '';
                 html += `<td class="px-6 py-4 whitespace-nowrap text-sm">
                             <input type="checkbox" value="${task.id}" class="bulk-transfer-checkbox h-4 w-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500" ${checked}>
@@ -4203,12 +4205,6 @@
 
         if (currentStage === 'poReleased') {
             formData.status = 'Yes';
-            if(formData.productId) {
-                // Extract only the product ID (before the ' - ') for the task.productId field
-                // but keep the full "ID - Name" in formData for PO Released table display
-                const productIdOnly = formData.productId.split(' - ')[0];
-                task.productId = productIdOnly; // Product Details page shows only ID
-            }
         } else if (['agreement', 'artWork'].includes(currentStage) && fileUploaded) {
             formData.status = 'Completed';
         } 
@@ -5527,6 +5523,24 @@
         });
     }
 
+    const productIdCounters = {
+        Pharma: 0,
+        FMCG: 0,
+        Surgical: 0,
+        Device: 0
+    };
+
+    function generateProductId(productType) {
+        const today = new Date();
+        const year = today.getFullYear().toString().slice(-2);
+        const typeCode = productType.substring(0, 3).toUpperCase();
+        
+        productIdCounters[productType]++;
+        const count = productIdCounters[productType].toString().padStart(3, '2');
+        
+        return `FY${year}-${typeCode}-${count}`;
+    }
+
     function handleApproveProposal() {
         const p = proposals.find(prop => prop.id === currentProposalId);
         if (!p) return;
@@ -5567,7 +5581,7 @@
                     id: `WIP-${String(Date.now() + approvedCount).slice(-4)}`, // Add count to ensure unique ID in loop
                     proposalId: p.id,
                     commercialId: selectedCommercialId, // <-- ***** ADD THIS *****
-                    productId: '', // Initially blank, fetched from PO Released stage
+                    productId: generateProductId(p.productType), // Initially blank, fetched from PO Released stage
                     productName: productName,
                     vendorName: vendor ? vendor.vendorName : 'N/A',
                     vendorId: vendor ? vendor.id : null,
@@ -7331,7 +7345,7 @@
                         id: `WIP-${String(Date.now() + approvedCount).slice(-4)}`,
                         proposalId: p.id,
                         commercialId: commercialId, // <-- ***** ADD THIS *****
-                        productId: '',
+                        productId: generateProductId(p.productType),
                         productName: productName,
                         vendorName: vendor ? vendor.vendorName : 'N/A',
                         vendorId: vendor ? vendor.id : null,

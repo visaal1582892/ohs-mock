@@ -1466,7 +1466,7 @@
                 pricing: { data: [{id: 3, productCost: '0.05', logisticsCost: '0.01', totalLandedCost: '0.06', tentativeMRP: '0.12', probableSP: '0.10', employeeIncentivePercentage: '5', margin: '0.035', marginPercentage: '35.00', gstPercentage: '12', moq: '100000', expectedTotalInvestment: '6600.00', upload: 'pricing_sheet.xlsx', status: 'Completed' }] },
                 branding: { data: [{id: 5, brandName: 'ParaRelief', brandingApproved: 'Yes', status: 'Completed', remarks: 'Finalized brand name.'}]},
                 vendorKYC: { data: [{id: 6, vendorName: 'Global Pharma', gstNumber: 'GSTIN123', accountDetails: 'ACC123456', complianceCertificates: 'ISO9001.pdf', address: '123 Pharma Lane', poc: 'John Doe', pocContactNo: '1234567890', email: 'john@global.com', uploadedDocuments: 'all_kyc_docs.zip', status: 'Completed', verificationDate: '30-05-2025', remarks: ''}]},
-                poReleased: { data: [{id: 7, productId: 'PARA-500-T', deliveryDate: '15-09-2025', tentativeLaunchDate: '01-10-2025', unitsOrdered: 50000, upload: 'PO-2025-001.pdf', status: 'Yes'}] },
+                poReleased: { data: [{id: 7, productId: 'PARA-500-T',poId: '1', deliveryDate: '15-09-2025', tentativeLaunchDate: '01-10-2025', unitsOrdered: 50000, upload: 'PO-2025-001.pdf', status: 'Yes'}] },
                 productionStarted: { data: [{ id: 1, value: 'Yes' }] },
                 rawMaterialsProcured: { data: [{ id: 2, value: 'Yes' }] },
                 packingMaterialProcured: { data: [{ id: 3, value: 'Yes' }] },
@@ -3425,7 +3425,7 @@
             title: 'PO Released Details',
             fields: [
                 { id: 'productId', label: 'Select Product', type: 'search-select', required: true },
-                { id: 'poId', label: 'Optival PO ID', type: 'text', required: true },
+                { id: 'poId', label: 'Optival Po ID', type: 'text', required: true },
                 { id: 'deliveryDate', label: 'PO Approval Date', type: 'date', required: true }, // <-- MODIFICATION: Label changed
                 { id: 'tentativeLaunchDate', label: 'Tentative Launch Date', type: 'date', readonly: true, required: true },
                 { id: 'unitsOrdered', label: 'Number of units ordered', type: 'number', required: true }
@@ -3596,6 +3596,7 @@
             }
             if (currentStage === 'poReleased') {
                 if (id === 'productId') headerText = 'Product';
+                if (id === 'poId') headerText = 'OPTIVAL PO ID';
                 if (id === 'deliveryDate') headerText = 'PO Approval Date';
             }
             return `<th class="px-4 py-2 text-left font-semibold text-slate-500 uppercase tracking-wider">${headerText}</th>`;

@@ -1671,10 +1671,10 @@
 
     // --- MODIFICATION START: Added new function ---
     function openBulkProductTransferModal() {
-        // 1. Get all transferrable tasks
+        // 1. Get all transferrable tasks (exclude Withdrawn and Launched)
         let transferrableTasks = wipTasks.filter(task => {
             const status = calculateWipStatus(task);
-            return status !== 'Withdrawn';
+            return status !== 'Withdrawn' && status !== 'Launched';
         });
 
         // 2. Filter by owner if in Employee view
@@ -3224,7 +3224,8 @@
         }
         
         // Allow transfer ownership for: (1) Employee who is the owner, or (2) Manager (any product, any owner)
-        if (!task.isCancelled && (isManagerView || task.owner === currentUser.name)) {
+        // but NOT for Launched products
+        if (!task.isCancelled && (isManagerView || task.owner === currentUser.name) && status !== 'Launched') {
             actionsHtml += `<button class="bg-slate-500 text-white font-semibold py-2 px-4 rounded-lg shadow-sm hover:bg-slate-600 transition ml-2 hover:shadow-md" onclick="handleTransferWipOwner('${task.id}')">Transfer Ownership</button>`;
         }
         
@@ -4202,7 +4203,10 @@
         if (currentStage === 'poReleased') {
             formData.status = 'Yes';
             if(formData.productId) {
-                task.productId = formData.productId;
+                // Extract only the product ID (before the ' - ') from the full selected value
+                const productIdOnly = formData.productId.split(' - ')[0];
+                task.productId = productIdOnly;
+                formData.productId = productIdOnly; // Also update formData to store only the ID
             }
         } else if (['agreement', 'artWork'].includes(currentStage) && fileUploaded) {
             formData.status = 'Completed';

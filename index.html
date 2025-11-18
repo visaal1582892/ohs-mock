@@ -1783,11 +1783,16 @@
         renderNewProductsList();
     }
 
-    function cancelBulkTransferMode() {
+    function cancelBulkTransferMode(keepHidden) {
+        // keepHidden may be an Event object when used as an event handler
+        const keepHiddenFlag = (typeof keepHidden === 'boolean') ? keepHidden : false;
         isBulkTransferMode = false;
         productsToTransfer = [];
         const bulkBtn = document.getElementById('btn-transfer-wip-owner-bulk');
-        if (bulkBtn) bulkBtn.classList.remove('hidden');
+        if (bulkBtn) {
+            if (!keepHiddenFlag) bulkBtn.classList.remove('hidden');
+            else bulkBtn.classList.add('hidden');
+        }
         const controls = document.getElementById('bulk-transfer-controls');
         if (controls) controls.remove();
         renderNewProductsList();
@@ -6665,6 +6670,12 @@
                 allNewProductPanels.forEach(p => p.classList.remove('inner-panel-active'));
                 innerTabWip.classList.add('inner-tab-active');
                 innerPanelWip.classList.add('inner-panel-active');
+                // Show Transfer Ownership bulk button only on WIP tab
+                const bulkBtn = document.getElementById('btn-transfer-wip-owner-bulk');
+                if (bulkBtn) bulkBtn.classList.remove('hidden');
+                // If user had an active transfer (modal or bulk mode), cancel it when switching tabs
+                try { if (isBulkTransferMode) cancelBulkTransferMode(true); } catch(e) {}
+                try { const tmodal = document.getElementById('transfer-owner-modal'); if (tmodal && !tmodal.classList.contains('hidden')) { tmodal.classList.add('hidden'); productsToTransfer = []; currentWipId = null; currentProposalId = null; } } catch(e) {}
             });
         }
         if(innerTabLaunched) {
@@ -6673,6 +6684,12 @@
                 allNewProductPanels.forEach(p => p.classList.remove('inner-panel-active'));
                 innerTabLaunched.classList.add('inner-tab-active');
                 innerPanelLaunched.classList.add('inner-panel-active');
+                // Hide Transfer Ownership bulk button on non-WIP tabs
+                const bulkBtn = document.getElementById('btn-transfer-wip-owner-bulk');
+                if (bulkBtn) bulkBtn.classList.add('hidden');
+                // Cancel transfer operations if active
+                try { if (isBulkTransferMode) cancelBulkTransferMode(true); } catch(e) {}
+                try { const tmodal = document.getElementById('transfer-owner-modal'); if (tmodal && !tmodal.classList.contains('hidden')) { tmodal.classList.add('hidden'); productsToTransfer = []; currentWipId = null; currentProposalId = null; } } catch(e) {}
             });
         }
         if(innerTabWithdrawn) {
@@ -6681,8 +6698,16 @@
                 allNewProductPanels.forEach(p => p.classList.remove('inner-panel-active'));
                 innerTabWithdrawn.classList.add('inner-tab-active');
                 innerPanelWithdrawn.classList.add('inner-panel-active');
+                // Hide Transfer Ownership bulk button on non-WIP tabs
+                const bulkBtn = document.getElementById('btn-transfer-wip-owner-bulk');
+                if (bulkBtn) bulkBtn.classList.add('hidden');
+                // Cancel transfer operations if active
+                try { if (isBulkTransferMode) cancelBulkTransferMode(true); } catch(e) {}
+                try { const tmodal = document.getElementById('transfer-owner-modal'); if (tmodal && !tmodal.classList.contains('hidden')) { tmodal.classList.add('hidden'); productsToTransfer = []; currentWipId = null; currentProposalId = null; } } catch(e) {}
             });
         }
+        // Ensure initial visibility of the Transfer Ownership bulk button
+        (function(){ const bulkBtnInit = document.getElementById('btn-transfer-wip-owner-bulk'); if (!bulkBtnInit) return; if (innerTabWip && innerTabWip.classList.contains('inner-tab-active')) bulkBtnInit.classList.remove('hidden'); else bulkBtnInit.classList.add('hidden'); })();
         // --- END: Inner Tab Listeners for New Products List ---
 
         // --- Column filter listeners for New Products (WIP / Launched / Withdrawn) ---
